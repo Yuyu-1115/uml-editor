@@ -1,3 +1,7 @@
+import controller.UMLController;
+import model.UMLModel;
+import view.UMLPanel;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -56,9 +60,16 @@ public class Main {
     }
 
     private static JPanel createCanvasPanel() {
-        JPanel canvasPanel = new JPanel();
+        UMLModel umlModel = new UMLModel();
+
+        UMLPanel canvasPanel = new UMLPanel(umlModel);
         canvasPanel.setBackground(Color.WHITE);
         canvasPanel.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
+
+
+        UMLController umlController = new UMLController(umlModel,canvasPanel);
+        canvasPanel.addMouseListener(umlController);
+        canvasPanel.addMouseMotionListener(umlController);
         return canvasPanel;
     }
 
