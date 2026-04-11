@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class UMLModel {
-    private static final int PORT_HIT_RADIUS = 8;
+    private static final int PORT_HIT_RADIUS = 12;
 
     private UserMode userMode = UserMode.SELECT;
     private UserMode previousUserModeForTemporaryCreate;
