@@ -5,13 +5,17 @@ import model.shape.UMLNode;
 import model.shape.UMLOval;
 import model.shape.UMLRect;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class UMLModel {
     private UserMode userMode = UserMode.SELECT;
     private UserMode previousUserModeForTemporaryCreate;
     private UserMode temporaryCreateMode;
+    private int nextTopDepth = 0;
     private final HashMap<UUID, UMLNode> objectRegistry = new HashMap<>();
 
     public void newShape(Vector2D position, Vector2D size) {
@@ -26,6 +30,8 @@ public class UMLModel {
             default:
                 return;
         }
+        shape.setDepth(nextTopDepth);
+        nextTopDepth--;
         objectRegistry.put(shape.getId(), shape);
     }
 
@@ -72,5 +78,16 @@ public class UMLModel {
 
     public HashMap<UUID, UMLNode> getObjectRegistry() {
         return objectRegistry;
+    }
+
+    public List<UMLNode> getNodesForRender() {
+        List<UMLNode> nodes = new ArrayList<>(objectRegistry.values());
+        nodes.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
+        return nodes;
+    }
+
+    public void bringToFront(UMLNode node) {
+        node.setDepth(nextTopDepth);
+        nextTopDepth--;
     }
 }

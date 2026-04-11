@@ -2,11 +2,17 @@ package model.shape;
 
 import model.Vector2D;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class UMLNode {
     private UUID id;
     private String name;
+    private int depth;
+    private UMLNode parent;
+    private final List<UMLNode> children = new ArrayList<>();
     protected Vector2D position;
     protected Vector2D size;
 
@@ -47,5 +53,37 @@ public class UMLNode {
 
     public UMLNode(Vector2D size) {
         this.size = size;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public UMLNode getParent() {
+        return parent;
+    }
+
+    public void setParent(UMLNode parent) {
+        this.parent = parent;
+    }
+
+    public List<UMLNode> getChildren() {
+        return Collections.unmodifiableList(children);
+    }
+
+    public void addChild(UMLNode child) {
+        children.add(child);
+        child.setParent(this);
+    }
+
+    public void removeChild(UMLNode child) {
+        children.remove(child);
+        if (child.getParent() == this) {
+            child.setParent(null);
+        }
     }
 }
