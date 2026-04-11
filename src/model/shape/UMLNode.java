@@ -1,13 +1,14 @@
 package model.shape;
 
 import model.Vector2D;
+import model.enums.PortType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class UMLNode {
+public abstract class UMLNode {
     private UUID id;
     private String name;
     private int depth;
@@ -85,5 +86,29 @@ public class UMLNode {
         if (child.getParent() == this) {
             child.setParent(null);
         }
+    }
+
+    public abstract boolean containsPoint(int x, int y);
+
+    public abstract List<PortType> getSupportedPorts();
+
+    public Vector2D getPortPosition(PortType portType) {
+        int left = position.x;
+        int right = position.x + size.x;
+        int centerX = position.x + (size.x / 2);
+        int top = position.y;
+        int bottom = position.y + size.y;
+        int centerY = position.y + (size.y / 2);
+
+        return switch (portType) {
+            case TOP_LEFT -> new Vector2D(left, top);
+            case TOP -> new Vector2D(centerX, top);
+            case TOP_RIGHT -> new Vector2D(right, top);
+            case RIGHT -> new Vector2D(right, centerY);
+            case BOTTOM_RIGHT -> new Vector2D(right, bottom);
+            case BOTTOM -> new Vector2D(centerX, bottom);
+            case BOTTOM_LEFT -> new Vector2D(left, bottom);
+            case LEFT -> new Vector2D(left, centerY);
+        };
     }
 }

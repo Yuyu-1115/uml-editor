@@ -14,6 +14,10 @@ public enum UserMode {
         return text;
     }
 
+    public boolean isLinkMode() {
+        return this == ASSOCIATION || this == GENERALIZATION || this == COMPOSITION;
+    }
+
     UserMode(String text) {
         this.text = text;
     }

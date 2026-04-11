@@ -8,6 +8,8 @@ import model.enums.UserMode;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -49,5 +51,12 @@ public class UMLUiBuilder {
         canvasPanel.addMouseListener(umlController);
         canvasPanel.addMouseMotionListener(umlController);
         return canvasPanel;
+    }
+
+    public JMenuBar createTopMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new JMenu("File"));
+        menuBar.add(new JMenu("Edit"));
+        return menuBar;
     }
 }
