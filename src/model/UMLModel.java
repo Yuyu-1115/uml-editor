@@ -8,9 +8,12 @@ import model.shape.UMLOval;
 import model.shape.UMLRect;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class UMLModel {
@@ -22,7 +25,7 @@ public class UMLModel {
     private int nextTopDepth = 0;
     private final HashMap<UUID, UMLNode> objectRegistry = new HashMap<>();
     private final List<UMLLink> links = new ArrayList<>();
-    private UUID selectedNodeId;
+    private final Set<UUID> selectedNodeIds = new LinkedHashSet<>();
     private UUID hoveredNodeId;
     private PortHit linkStartPort;
     private Vector2D linkPreviewPoint;
@@ -134,19 +137,71 @@ public class UMLModel {
     }
 
     public void setSelectedNode(UMLNode node) {
-        selectedNodeId = node == null ? null : node.getId();
+        selectedNodeIds.clear();
+        if (node != null) {
+            selectedNodeIds.add(node.getId());
+        }
+    }
+
+    public void addSelectedNode(UMLNode node) {
+        if (node == null) {
+            return;
+        }
+        selectedNodeIds.add(node.getId());
+    }
+
+    public void removeSelectedNode(UMLNode node) {
+        if (node == null) {
+            return;
+        }
+        selectedNodeIds.remove(node.getId());
+    }
+
+    public void toggleSelectedNode(UMLNode node) {
+        if (node == null) {
+            return;
+        }
+        UUID nodeId = node.getId();
+        if (selectedNodeIds.contains(nodeId)) {
+            selectedNodeIds.remove(nodeId);
+            return;
+        }
+        selectedNodeIds.add(nodeId);
     }
 
     public void clearSelection() {
-        selectedNodeId = null;
+        selectedNodeIds.clear();
     }
 
-    public UUID getSelectedNodeId() {
-        return selectedNodeId;
+    public void setSelectedNodes(List<UMLNode> nodes) {
+        selectedNodeIds.clear();
+        if (nodes == null) {
+            return;
+        }
+        for (UMLNode node : nodes) {
+            if (node != null) {
+                selectedNodeIds.add(node.getId());
+            }
+        }
+    }
+
+    public Set<UUID> getSelectedNodeIds() {
+        return Collections.unmodifiableSet(selectedNodeIds);
+    }
+
+    public List<UMLNode> getSelectedNodes() {
+        List<UMLNode> selectedNodes = new ArrayList<>();
+        for (UUID selectedNodeId : selectedNodeIds) {
+            UMLNode selectedNode = objectRegistry.get(selectedNodeId);
+            if (selectedNode != null) {
+                selectedNodes.add(selectedNode);
+            }
+        }
+        return selectedNodes;
     }
 
     public boolean isSelected(UMLNode node) {
-        return node != null && node.getId().equals(selectedNodeId);
+        return node != null && selectedNodeIds.contains(node.getId());
     }
 
     public void setHoveredNode(UMLNode node) {

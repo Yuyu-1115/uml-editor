@@ -43,7 +43,19 @@ public class UMLController extends MouseAdapter {
 
         if (model.getUserMode() == UserMode.SELECT) {
             UMLNode clickedNode = model.findTopNodeAt(point.x, point.y);
-            model.setSelectedNode(clickedNode);
+            if (clickedNode == null) {
+                if (!e.isShiftDown()) {
+                    model.clearSelection();
+                }
+                umlPanel.repaint();
+                return;
+            }
+
+            if (e.isShiftDown()) {
+                model.toggleSelectedNode(clickedNode);
+            } else {
+                model.setSelectedNode(clickedNode);
+            }
             if (clickedNode != null) {
                 model.bringToFront(clickedNode);
             }
