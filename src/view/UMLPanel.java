@@ -14,7 +14,7 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 
 public class UMLPanel extends JPanel {
-    private static final int PORT_SIZE = 8;
+    private static final int PORT_SIZE = 12;
     private final UMLModel umlModel;
 
     public UMLPanel(UMLModel umlModel) {
@@ -77,33 +77,61 @@ public class UMLPanel extends JPanel {
         Vector2D start = sourceNode.getPortPosition(link.getSourcePort());
         Vector2D end = targetNode.getPortPosition(link.getTargetPort());
         g2d.setColor(Color.BLACK);
-        g2d.drawLine(start.x, start.y, end.x, end.y);
 
-        if (link.getType() == LinkType.GENERALIZATION) {
+        if (link.getType() == LinkType.ASSOCIATION) {
+            drawAssociationArrow(g2d, start, end);
+        } else if (link.getType() == LinkType.GENERALIZATION) {
             drawTriangleArrow(g2d, start, end);
         } else if (link.getType() == LinkType.COMPOSITION) {
             drawDiamondArrow(g2d, start, end);
         }
     }
 
-    private void drawTriangleArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
-        Vector2D direction = unitDirection(start, end);
-        Vector2D perpendicular = new Vector2D(-direction.y, direction.x);
-        int arrowLength = 16;
-        int arrowWidth = 8;
+    private void drawAssociationArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
+        double[] unit = calculateUnitDirection(start, end);
+        double ux = unit[0];
+        double uy = unit[1];
+        double px = -uy;
+        double py = ux;
+        int tipX = end.x;
+        int tipY = end.y;
+        int armLength = 14;
+        int armWidth = 7;
+        int baseX = (int) Math.round(tipX - ux * armLength);
+        int baseY = (int) Math.round(tipY - uy * armLength);
+        int leftX = (int) Math.round(baseX + px * armWidth);
+        int leftY = (int) Math.round(baseY + py * armWidth);
+        int rightX = (int) Math.round(baseX - px * armWidth);
+        int rightY = (int) Math.round(baseY - py * armWidth);
 
-        int baseX = end.x - direction.x * arrowLength;
-        int baseY = end.y - direction.y * arrowLength;
-        int leftX = baseX + perpendicular.x * arrowWidth;
-        int leftY = baseY + perpendicular.y * arrowWidth;
-        int rightX = baseX - perpendicular.x * arrowWidth;
-        int rightY = baseY - perpendicular.y * arrowWidth;
+        g2d.drawLine(start.x, start.y, tipX, tipY);
+        g2d.drawLine(tipX, tipY, leftX, leftY);
+        g2d.drawLine(tipX, tipY, rightX, rightY);
+    }
+
+    private void drawTriangleArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
+        double[] unit = calculateUnitDirection(start, end);
+        double ux = unit[0];
+        double uy = unit[1];
+        double px = -uy;
+        double py = ux;
+        int arrowLength = 18;
+        int arrowWidth = 9;
+        int tipX = end.x;
+        int tipY = end.y;
+        int baseX = (int) Math.round(tipX - ux * arrowLength);
+        int baseY = (int) Math.round(tipY - uy * arrowLength);
+        int leftX = (int) Math.round(baseX + px * arrowWidth);
+        int leftY = (int) Math.round(baseY + py * arrowWidth);
+        int rightX = (int) Math.round(baseX - px * arrowWidth);
+        int rightY = (int) Math.round(baseY - py * arrowWidth);
 
         Path2D triangle = new Path2D.Double();
-        triangle.moveTo(end.x, end.y);
+        triangle.moveTo(tipX, tipY);
         triangle.lineTo(leftX, leftY);
         triangle.lineTo(rightX, rightY);
         triangle.closePath();
+        g2d.drawLine(start.x, start.y, baseX, baseY);
         g2d.setColor(Color.WHITE);
         g2d.fill(triangle);
         g2d.setColor(Color.BLACK);
@@ -111,37 +139,45 @@ public class UMLPanel extends JPanel {
     }
 
     private void drawDiamondArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
-        Vector2D direction = unitDirection(start, end);
-        Vector2D perpendicular = new Vector2D(-direction.y, direction.x);
+        double[] unit = calculateUnitDirection(start, end);
+        double ux = unit[0];
+        double uy = unit[1];
+        double px = -uy;
+        double py = ux;
         int length = 14;
         int width = 7;
+        int tipX = end.x;
+        int tipY = end.y;
+        int backX = (int) Math.round(tipX - ux * length * 2.0);
+        int backY = (int) Math.round(tipY - uy * length * 2.0);
+        int middleX = (int) Math.round(tipX - ux * length);
+        int middleY = (int) Math.round(tipY - uy * length);
 
-        int backX = end.x - direction.x * length * 2;
-        int backY = end.y - direction.y * length * 2;
-        int middleX = end.x - direction.x * length;
-        int middleY = end.y - direction.y * length;
-
-        int leftX = middleX + perpendicular.x * width;
-        int leftY = middleY + perpendicular.y * width;
-        int rightX = middleX - perpendicular.x * width;
-        int rightY = middleY - perpendicular.y * width;
+        int leftX = (int) Math.round(middleX + px * width);
+        int leftY = (int) Math.round(middleY + py * width);
+        int rightX = (int) Math.round(middleX - px * width);
+        int rightY = (int) Math.round(middleY - py * width);
 
         Path2D diamond = new Path2D.Double();
-        diamond.moveTo(end.x, end.y);
+        diamond.moveTo(tipX, tipY);
         diamond.lineTo(leftX, leftY);
         diamond.lineTo(backX, backY);
         diamond.lineTo(rightX, rightY);
         diamond.closePath();
+        g2d.drawLine(start.x, start.y, backX, backY);
+        g2d.setColor(Color.WHITE);
         g2d.fill(diamond);
+        g2d.setColor(Color.BLACK);
+        g2d.draw(diamond);
     }
 
-    private Vector2D unitDirection(Vector2D start, Vector2D end) {
+    private double[] calculateUnitDirection(Vector2D start, Vector2D end) {
         int dx = end.x - start.x;
         int dy = end.y - start.y;
         double magnitude = Math.hypot(dx, dy);
         if (magnitude == 0) {
-            return new Vector2D(1, 0);
+            return new double[]{1.0, 0.0};
         }
-        return new Vector2D((int) Math.round(dx / magnitude), (int) Math.round(dy / magnitude));
+        return new double[]{dx / magnitude, dy / magnitude};
     }
 }
