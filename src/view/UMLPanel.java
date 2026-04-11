@@ -1,7 +1,6 @@
 package view;
 
 import model.UMLModel;
-import model.Vector2D;
 import model.shape.UMLNode;
 
 import javax.swing.*;
@@ -21,7 +20,5 @@ public class UMLPanel extends JPanel {
         for (UMLNode node: umlModel.getObjectRegistry().values()) {
             g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
         }
-        System.out.println(umlModel.getObjectRegistry().size());
-
     }
 }
