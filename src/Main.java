@@ -21,6 +21,7 @@ public class Main {
 
         UMLModel umlModel = new UMLModel();
         UMLUiBuilder uiBuilder = new UMLUiBuilder(umlModel);
+        frame.setJMenuBar(uiBuilder.createTopMenuBar());
         frame.add(uiBuilder.createToolPanel(), BorderLayout.WEST);
         frame.add(uiBuilder.createCanvasPanel(), BorderLayout.CENTER);
 
