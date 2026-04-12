@@ -29,6 +29,8 @@ public class UMLModel {
     private UUID hoveredNodeId;
     private PortHit linkStartPort;
     private Vector2D linkPreviewPoint;
+    private Vector2D temporaryCreatePreviewPosition;
+    private Vector2D temporaryCreatePreviewSize;
 
     public void newShape(Vector2D position, Vector2D size) {
         UMLNode shape;
@@ -55,6 +57,7 @@ public class UMLModel {
         this.userMode = userMode;
         clearHover();
         clearLinkDraft();
+        clearTemporaryCreatePreview();
     }
 
     public boolean startTemporaryCreateMode(UserMode mode) {
@@ -64,6 +67,7 @@ public class UMLModel {
         previousUserModeForTemporaryCreate = userMode;
         temporaryCreateMode = mode;
         userMode = mode;
+        clearTemporaryCreatePreview();
         return true;
     }
 
@@ -87,6 +91,7 @@ public class UMLModel {
         temporaryCreateMode = null;
         previousUserModeForTemporaryCreate = null;
         userMode = restoredMode;
+        clearTemporaryCreatePreview();
         return restoredMode;
     }
 
@@ -271,5 +276,112 @@ public class UMLModel {
             return null;
         }
         return node.getPortPosition(portHit.getPortType());
+    }
+
+    public void moveNode(UMLNode node, int deltaX, int deltaY) {
+        if (node == null || (deltaX == 0 && deltaY == 0)) {
+            return;
+        }
+        node.setPosition(new Vector2D(node.getPosition().x + deltaX, node.getPosition().y + deltaY));
+    }
+
+    public void resizeNodeByPort(
+            UMLNode node,
+            PortType draggedPort,
+            Vector2D oppositePortPoint,
+            Vector2D dragPoint,
+            Vector2D initialPosition,
+            Vector2D initialSize,
+            int minSize
+    ) {
+        if (node == null || draggedPort == null || oppositePortPoint == null || dragPoint == null || initialPosition == null || initialSize == null) {
+            return;
+        }
+
+        int initialLeft = initialPosition.x;
+        int initialTop = initialPosition.y;
+        int initialRight = initialPosition.x + initialSize.x;
+        int initialBottom = initialPosition.y + initialSize.y;
+
+        int left = initialLeft;
+        int right = initialRight;
+        int top = initialTop;
+        int bottom = initialBottom;
+
+        boolean horizontalResize = draggedPort == PortType.LEFT || draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_LEFT
+                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
+        boolean verticalResize = draggedPort == PortType.TOP || draggedPort == PortType.BOTTOM || draggedPort == PortType.TOP_LEFT
+                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
+
+        if (horizontalResize) {
+            left = Math.min(dragPoint.x, oppositePortPoint.x);
+            right = Math.max(dragPoint.x, oppositePortPoint.x);
+        }
+        if (verticalResize) {
+            top = Math.min(dragPoint.y, oppositePortPoint.y);
+            bottom = Math.max(dragPoint.y, oppositePortPoint.y);
+        }
+
+        int minLength = Math.max(40, minSize);
+
+        if (right - left < minLength) {
+            if (draggedPort == PortType.LEFT || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.BOTTOM_LEFT) {
+                left = right - minLength;
+            } else if (draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_RIGHT) {
+                right = left + minLength;
+            } else {
+                right = left + minLength;
+            }
+        }
+        if (bottom - top < minLength) {
+            if (draggedPort == PortType.TOP || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.TOP_RIGHT) {
+                top = bottom - minLength;
+            } else if (draggedPort == PortType.BOTTOM || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT) {
+                bottom = top + minLength;
+            } else {
+                bottom = top + minLength;
+            }
+        }
+
+        node.setPosition(new Vector2D(left, top));
+        node.setSize(new Vector2D(right - left, bottom - top));
+    }
+
+    public PortType getOppositePortType(PortType portType) {
+        if (portType == null) {
+            return null;
+        }
+        return switch (portType) {
+            case TOP_LEFT -> PortType.BOTTOM_RIGHT;
+            case TOP -> PortType.BOTTOM;
+            case TOP_RIGHT -> PortType.BOTTOM_LEFT;
+            case RIGHT -> PortType.LEFT;
+            case BOTTOM_RIGHT -> PortType.TOP_LEFT;
+            case BOTTOM -> PortType.TOP;
+            case BOTTOM_LEFT -> PortType.TOP_RIGHT;
+            case LEFT -> PortType.RIGHT;
+        };
+    }
+
+    public void setTemporaryCreatePreview(Vector2D position, Vector2D size) {
+        this.temporaryCreatePreviewPosition = position;
+        this.temporaryCreatePreviewSize = size;
+    }
+
+    public void clearTemporaryCreatePreview() {
+        temporaryCreatePreviewPosition = null;
+        temporaryCreatePreviewSize = null;
+    }
+
+    public boolean hasTemporaryCreatePreview() {
+        return temporaryCreatePreviewPosition != null && temporaryCreatePreviewSize != null;
+    }
+
+    public Vector2D getTemporaryCreatePreviewPosition() {
+        return temporaryCreatePreviewPosition;
+    }
+
+    public Vector2D getTemporaryCreatePreviewSize() {
+        return temporaryCreatePreviewSize;
     }
 }
