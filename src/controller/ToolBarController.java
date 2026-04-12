@@ -20,6 +20,9 @@ import java.util.Map;
 import javax.swing.border.Border;
 
 public class ToolBarController {
+    private static final int CREATE_PREVIEW_WIDTH = 100;
+    private static final int CREATE_PREVIEW_HEIGHT = 100;
+
     private final UMLModel model;
     private final Map<UserMode, JButton> buttons = new EnumMap<>(UserMode.class);
     private final Map<UserMode, Color> defaultTextColors = new EnumMap<>(UserMode.class);
@@ -27,7 +30,7 @@ public class ToolBarController {
     private final Map<UserMode, Border> defaultBorders = new EnumMap<>(UserMode.class);
     private UMLPanel editorPanel;
     private boolean pointerInsideEditorArea;
-    private AWTEventListener temporaryReleaseListener;
+    private AWTEventListener temporaryCreateListener;
 
     public ToolBarController(UMLModel model) {
         this.model = model;
@@ -95,11 +98,8 @@ public class ToolBarController {
 
     private void installTemporaryReleaseListener() {
         removeTemporaryReleaseListener();
-        temporaryReleaseListener = event -> {
+        temporaryCreateListener = event -> {
             if (!(event instanceof MouseEvent mouseEvent)) {
-                return;
-            }
-            if (mouseEvent.getID() != MouseEvent.MOUSE_RELEASED || !SwingUtilities.isLeftMouseButton(mouseEvent)) {
                 return;
             }
             if (!model.isTemporaryCreateModeActive()) {
@@ -107,11 +107,23 @@ public class ToolBarController {
                 return;
             }
 
-            if (editorPanel != null && pointerInsideEditorArea) {
+            if (mouseEvent.getID() == MouseEvent.MOUSE_MOVED || mouseEvent.getID() == MouseEvent.MOUSE_DRAGGED) {
+                updateTemporaryCreatePreview(mouseEvent);
+                return;
+            }
+
+            if (mouseEvent.getID() != MouseEvent.MOUSE_RELEASED || !SwingUtilities.isLeftMouseButton(mouseEvent)) {
+                return;
+            }
+
+            if (editorPanel != null) {
                 Point releasePoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
                 SwingUtilities.convertPointFromScreen(releasePoint, editorPanel);
                 if (editorPanel.contains(releasePoint)) {
-                    model.newShape(new Vector2D(releasePoint.x - 50, releasePoint.y - 50), new Vector2D(100, 100));
+                    model.newShape(
+                            new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
+                            new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
+                    );
                     editorPanel.repaint();
                 }
             }
@@ -119,15 +131,36 @@ public class ToolBarController {
             restoreAfterTemporaryCreate();
             removeTemporaryReleaseListener();
         };
-        Toolkit.getDefaultToolkit().addAWTEventListener(temporaryReleaseListener, AWTEvent.MOUSE_EVENT_MASK);
+        Toolkit.getDefaultToolkit().addAWTEventListener(
+                temporaryCreateListener,
+                AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK
+        );
     }
 
     private void removeTemporaryReleaseListener() {
-        if (temporaryReleaseListener == null) {
+        if (temporaryCreateListener == null) {
             return;
         }
-        Toolkit.getDefaultToolkit().removeAWTEventListener(temporaryReleaseListener);
-        temporaryReleaseListener = null;
+        Toolkit.getDefaultToolkit().removeAWTEventListener(temporaryCreateListener);
+        temporaryCreateListener = null;
+    }
+
+    private void updateTemporaryCreatePreview(MouseEvent mouseEvent) {
+        if (editorPanel == null) {
+            return;
+        }
+        Point previewPoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
+        SwingUtilities.convertPointFromScreen(previewPoint, editorPanel);
+        if (!editorPanel.contains(previewPoint)) {
+            model.clearTemporaryCreatePreview();
+            editorPanel.repaint();
+            return;
+        }
+        model.setTemporaryCreatePreview(
+                new Vector2D(previewPoint.x - (CREATE_PREVIEW_WIDTH / 2), previewPoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
+                new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
+        );
+        editorPanel.repaint();
     }
 
     private void setButtonDefault(UserMode mode) {

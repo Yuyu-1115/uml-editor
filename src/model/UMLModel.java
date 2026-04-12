@@ -29,6 +29,8 @@ public class UMLModel {
     private UUID hoveredNodeId;
     private PortHit linkStartPort;
     private Vector2D linkPreviewPoint;
+    private Vector2D temporaryCreatePreviewPosition;
+    private Vector2D temporaryCreatePreviewSize;
 
     public void newShape(Vector2D position, Vector2D size) {
         UMLNode shape;
@@ -55,6 +57,7 @@ public class UMLModel {
         this.userMode = userMode;
         clearHover();
         clearLinkDraft();
+        clearTemporaryCreatePreview();
     }
 
     public boolean startTemporaryCreateMode(UserMode mode) {
@@ -64,6 +67,7 @@ public class UMLModel {
         previousUserModeForTemporaryCreate = userMode;
         temporaryCreateMode = mode;
         userMode = mode;
+        clearTemporaryCreatePreview();
         return true;
     }
 
@@ -87,6 +91,7 @@ public class UMLModel {
         temporaryCreateMode = null;
         previousUserModeForTemporaryCreate = null;
         userMode = restoredMode;
+        clearTemporaryCreatePreview();
         return restoredMode;
     }
 
@@ -317,7 +322,7 @@ public class UMLModel {
             bottom = Math.max(dragPoint.y, oppositePortPoint.y);
         }
 
-        int minLength = Math.max(20, minSize);
+        int minLength = Math.max(40, minSize);
 
         if (right - left < minLength) {
             if (draggedPort == PortType.LEFT || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.BOTTOM_LEFT) {
@@ -356,5 +361,27 @@ public class UMLModel {
             case BOTTOM_LEFT -> PortType.TOP_RIGHT;
             case LEFT -> PortType.RIGHT;
         };
+    }
+
+    public void setTemporaryCreatePreview(Vector2D position, Vector2D size) {
+        this.temporaryCreatePreviewPosition = position;
+        this.temporaryCreatePreviewSize = size;
+    }
+
+    public void clearTemporaryCreatePreview() {
+        temporaryCreatePreviewPosition = null;
+        temporaryCreatePreviewSize = null;
+    }
+
+    public boolean hasTemporaryCreatePreview() {
+        return temporaryCreatePreviewPosition != null && temporaryCreatePreviewSize != null;
+    }
+
+    public Vector2D getTemporaryCreatePreviewPosition() {
+        return temporaryCreatePreviewPosition;
+    }
+
+    public Vector2D getTemporaryCreatePreviewSize() {
+        return temporaryCreatePreviewSize;
     }
 }

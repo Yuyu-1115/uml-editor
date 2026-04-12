@@ -6,6 +6,7 @@ import model.UMLModel;
 import model.Vector2D;
 import model.enums.LinkType;
 import model.enums.PortType;
+import model.enums.UserMode;
 import model.shape.UMLNode;
 import model.shape.UMLOval;
 
@@ -31,6 +32,10 @@ public class UMLPanel extends JPanel {
             drawLink(g2d, link);
         }
 
+        if (umlModel.hasTemporaryCreatePreview()) {
+            drawTemporaryCreatePreview(g2d);
+        }
+
         for (UMLNode node: umlModel.getNodesForRender()) {
             if (node instanceof UMLOval) {
                 g2d.setColor(Color.WHITE);
@@ -43,6 +48,7 @@ public class UMLPanel extends JPanel {
                 g2d.setColor(Color.BLACK);
                 g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
             }
+            drawNodeName(g2d, node);
             if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
                 drawPorts(g2d, node);
             }
@@ -65,6 +71,37 @@ public class UMLPanel extends JPanel {
             Vector2D port = node.getPortPosition(portType);
             g2d.fillRect(port.x - PORT_SIZE / 2, port.y - PORT_SIZE / 2, PORT_SIZE, PORT_SIZE);
         }
+    }
+
+    private void drawTemporaryCreatePreview(Graphics2D g2d) {
+        Vector2D position = umlModel.getTemporaryCreatePreviewPosition();
+        Vector2D size = umlModel.getTemporaryCreatePreviewSize();
+        if (position == null || size == null) {
+            return;
+        }
+        Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        g2d.setColor(new Color(80, 80, 80, 180));
+        if (umlModel.getTemporaryCreateMode() == UserMode.OVAL) {
+            g2d.drawOval(position.x, position.y, size.x, size.y);
+        } else {
+            g2d.drawRect(position.x, position.y, size.x, size.y);
+        }
+        g2d.setStroke(oldStroke);
+    }
+
+    private void drawNodeName(Graphics2D g2d, UMLNode node) {
+        String name = node.getName();
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        FontMetrics metrics = g2d.getFontMetrics();
+        int textWidth = metrics.stringWidth(name);
+        int textHeight = metrics.getAscent();
+        int textX = node.getPosition().x + (node.getSize().x - textWidth) / 2;
+        int textY = node.getPosition().y + (node.getSize().y + textHeight) / 2 - 2;
+        g2d.setColor(Color.BLACK);
+        g2d.drawString(name, textX, textY);
     }
 
     private void drawLink(Graphics2D g2d, UMLLink link) {
