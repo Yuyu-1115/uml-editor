@@ -3,6 +3,7 @@ package model;
 import model.enums.LinkType;
 import model.enums.PortType;
 import model.enums.UserMode;
+import model.shape.UMLGroup;
 import model.shape.UMLNode;
 import model.shape.UMLOval;
 import model.shape.UMLRect;
@@ -100,7 +101,12 @@ public class UMLModel {
     }
 
     public List<UMLNode> getNodesForRender() {
-        List<UMLNode> nodes = new ArrayList<>(objectRegistry.values());
+        List<UMLNode> nodes = new ArrayList<>();
+        for (UMLNode node : objectRegistry.values()) {
+            if (node.getParent() == null) {
+                nodes.add(node);
+            }
+        }
         nodes.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
         return nodes;
     }
@@ -282,7 +288,14 @@ public class UMLModel {
         if (node == null || (deltaX == 0 && deltaY == 0)) {
             return;
         }
+        moveNodeRecursive(node, deltaX, deltaY);
+    }
+
+    private void moveNodeRecursive(UMLNode node, int deltaX, int deltaY) {
         node.setPosition(new Vector2D(node.getPosition().x + deltaX, node.getPosition().y + deltaY));
+        for (UMLNode child : node.getChildren()) {
+            moveNodeRecursive(child, deltaX, deltaY);
+        }
     }
 
     public void resizeNodeByPort(
@@ -361,6 +374,59 @@ public class UMLModel {
             case BOTTOM_LEFT -> PortType.TOP_RIGHT;
             case LEFT -> PortType.RIGHT;
         };
+    }
+
+    public boolean groupSelectedNodes() {
+        List<UMLNode> selectedNodes = getSelectedNodes();
+        List<UMLNode> topLevelSelectedNodes = new ArrayList<>();
+        for (UMLNode selectedNode : selectedNodes) {
+            if (selectedNode != null && selectedNode.getParent() == null) {
+                topLevelSelectedNodes.add(selectedNode);
+            }
+        }
+        if (topLevelSelectedNodes.size() < 2) {
+            return false;
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (UMLNode node : topLevelSelectedNodes) {
+            minX = Math.min(minX, node.getPosition().x);
+            minY = Math.min(minY, node.getPosition().y);
+            maxX = Math.max(maxX, node.getPosition().x + node.getSize().x);
+            maxY = Math.max(maxY, node.getPosition().y + node.getSize().y);
+        }
+
+        UMLGroup group = new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));
+        objectRegistry.put(group.getId(), group);
+        for (UMLNode node : topLevelSelectedNodes) {
+            group.addChild(node);
+        }
+        bringToFront(group);
+        setSelectedNode(group);
+        return true;
+    }
+
+    public boolean ungroupSelectedNode() {
+        List<UMLNode> selectedNodes = getSelectedNodes();
+        if (selectedNodes.size() != 1) {
+            return false;
+        }
+        UMLNode selectedNode = selectedNodes.get(0);
+        if (!(selectedNode instanceof UMLGroup group)) {
+            return false;
+        }
+
+        List<UMLNode> children = new ArrayList<>(group.getChildren());
+        for (UMLNode child : children) {
+            group.removeChild(child);
+            bringToFront(child);
+        }
+        objectRegistry.remove(group.getId());
+        setSelectedNodes(children);
+        return true;
     }
 
     public void setTemporaryCreatePreview(Vector2D position, Vector2D size) {

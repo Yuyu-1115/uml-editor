@@ -7,12 +7,16 @@ import model.Vector2D;
 import model.enums.LinkType;
 import model.enums.PortType;
 import model.enums.UserMode;
+import model.shape.UMLGroup;
 import model.shape.UMLNode;
 import model.shape.UMLOval;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class UMLPanel extends JPanel {
     private static final int PORT_SIZE = 12;
@@ -37,21 +41,7 @@ public class UMLPanel extends JPanel {
         }
 
         for (UMLNode node: umlModel.getNodesForRender()) {
-            if (node instanceof UMLOval) {
-                g2d.setColor(Color.WHITE);
-                g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-                g2d.setColor(Color.BLACK);
-                g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            } else {
-                g2d.setColor(Color.WHITE);
-                g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-                g2d.setColor(Color.BLACK);
-                g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            }
-            drawNodeName(g2d, node);
-            if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
-                drawPorts(g2d, node);
-            }
+            drawNodeRecursive(g2d, node);
         }
 
         if (umlModel.hasLinkDraft()) {
@@ -71,6 +61,44 @@ public class UMLPanel extends JPanel {
             Vector2D port = node.getPortPosition(portType);
             g2d.fillRect(port.x - PORT_SIZE / 2, port.y - PORT_SIZE / 2, PORT_SIZE, PORT_SIZE);
         }
+    }
+
+    private void drawNodeRecursive(Graphics2D g2d, UMLNode node) {
+        if (node instanceof UMLGroup) {
+            List<UMLNode> children = new ArrayList<>(node.getChildren());
+            children.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
+            for (UMLNode child : children) {
+                drawNodeRecursive(g2d, child);
+            }
+            if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
+                drawGroupBoundary(g2d, node);
+            }
+            return;
+        }
+
+        if (node instanceof UMLOval) {
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+            g2d.setColor(Color.BLACK);
+            g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+        } else {
+            g2d.setColor(Color.WHITE);
+            g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+        }
+        drawNodeName(g2d, node);
+        if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
+            drawPorts(g2d, node);
+        }
+    }
+
+    private void drawGroupBoundary(Graphics2D g2d, UMLNode groupNode) {
+        Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        g2d.setColor(Color.BLACK);
+        g2d.drawRect(groupNode.getPosition().x, groupNode.getPosition().y, groupNode.getSize().x, groupNode.getSize().y);
+        g2d.setStroke(oldStroke);
     }
 
     private void drawTemporaryCreatePreview(Graphics2D g2d) {

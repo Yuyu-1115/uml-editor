@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,6 +18,7 @@ import java.awt.Dimension;
 public class UMLUiBuilder {
     private final UMLModel umlModel;
     private final ToolBarController toolBarController;
+    private UMLPanel canvasPanel;
 
     public UMLUiBuilder(UMLModel umlModel) {
         this.umlModel = umlModel;
@@ -42,7 +44,7 @@ public class UMLUiBuilder {
     }
 
     public JPanel createCanvasPanel() {
-        UMLPanel canvasPanel = new UMLPanel(umlModel);
+        canvasPanel = new UMLPanel(umlModel);
         toolBarController.setEditorPanel(canvasPanel);
         canvasPanel.setBackground(Color.WHITE);
         canvasPanel.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
@@ -56,7 +58,22 @@ public class UMLUiBuilder {
     public JMenuBar createTopMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(new JMenu("File"));
-        menuBar.add(new JMenu("Edit"));
+        JMenu editMenu = new JMenu("Edit");
+        JMenuItem groupItem = new JMenuItem("Group");
+        groupItem.addActionListener(e -> {
+            if (umlModel.groupSelectedNodes() && canvasPanel != null) {
+                canvasPanel.repaint();
+            }
+        });
+        JMenuItem ungroupItem = new JMenuItem("Ungroup");
+        ungroupItem.addActionListener(e -> {
+            if (umlModel.ungroupSelectedNode() && canvasPanel != null) {
+                canvasPanel.repaint();
+            }
+        });
+        editMenu.add(groupItem);
+        editMenu.add(ungroupItem);
+        menuBar.add(editMenu);
         return menuBar;
     }
 }
