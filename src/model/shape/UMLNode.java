@@ -3,6 +3,7 @@ package model.shape;
 import model.Vector2D;
 import model.enums.PortType;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +15,7 @@ public abstract class UMLNode {
     private int depth;
     private UMLNode parent;
     private final List<UMLNode> children = new ArrayList<>();
+    private Color labelColor = Color.WHITE;
     protected Vector2D position;
     protected Vector2D size;
 
@@ -34,6 +36,17 @@ public abstract class UMLNode {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Color getLabelColor() {
+        return labelColor;
+    }
+
+    public void setLabelColor(Color labelColor) {
+        if (labelColor == null) {
+            return;
+        }
+        this.labelColor = labelColor;
     }
 
     public Vector2D getPosition() {

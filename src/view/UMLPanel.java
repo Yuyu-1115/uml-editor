@@ -1,18 +1,22 @@
 package view;
 
-import model.PortHit;
+import model.UMLPort;
 import model.UMLLink;
 import model.UMLModel;
 import model.Vector2D;
 import model.enums.LinkType;
 import model.enums.PortType;
 import model.enums.UserMode;
+import model.shape.UMLGroup;
 import model.shape.UMLNode;
 import model.shape.UMLOval;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class UMLPanel extends JPanel {
     private static final int PORT_SIZE = 12;
@@ -37,25 +41,15 @@ public class UMLPanel extends JPanel {
         }
 
         for (UMLNode node: umlModel.getNodesForRender()) {
-            if (node instanceof UMLOval) {
-                g2d.setColor(Color.WHITE);
-                g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-                g2d.setColor(Color.BLACK);
-                g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            } else {
-                g2d.setColor(Color.WHITE);
-                g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-                g2d.setColor(Color.BLACK);
-                g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            }
-            drawNodeName(g2d, node);
-            if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
-                drawPorts(g2d, node);
-            }
+            drawNodeRecursive(g2d, node);
+        }
+
+        if (umlModel.hasSelectionAreaDraft()) {
+            drawSelectionAreaDraft(g2d);
         }
 
         if (umlModel.hasLinkDraft()) {
-            PortHit startPort = umlModel.getLinkStartPort();
+            UMLPort startPort = umlModel.getLinkStartPort();
             Vector2D startPosition = umlModel.getPortPosition(startPort);
             Vector2D endPosition = umlModel.getLinkPreviewPoint();
             if (startPosition != null && endPosition != null) {
@@ -71,6 +65,44 @@ public class UMLPanel extends JPanel {
             Vector2D port = node.getPortPosition(portType);
             g2d.fillRect(port.x - PORT_SIZE / 2, port.y - PORT_SIZE / 2, PORT_SIZE, PORT_SIZE);
         }
+    }
+
+    private void drawNodeRecursive(Graphics2D g2d, UMLNode node) {
+        if (node instanceof UMLGroup) {
+            List<UMLNode> children = new ArrayList<>(node.getChildren());
+            children.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
+            for (UMLNode child : children) {
+                drawNodeRecursive(g2d, child);
+            }
+            if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
+                drawGroupBoundary(g2d, node);
+            }
+            return;
+        }
+
+        if (node instanceof UMLOval) {
+            g2d.setColor(node.getLabelColor());
+            g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+            g2d.setColor(Color.BLACK);
+            g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+        } else {
+            g2d.setColor(node.getLabelColor());
+            g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
+        }
+        drawNodeName(g2d, node);
+        if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
+            drawPorts(g2d, node);
+        }
+    }
+
+    private void drawGroupBoundary(Graphics2D g2d, UMLNode groupNode) {
+        Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        g2d.setColor(Color.BLACK);
+        g2d.drawRect(groupNode.getPosition().x, groupNode.getPosition().y, groupNode.getSize().x, groupNode.getSize().y);
+        g2d.setStroke(oldStroke);
     }
 
     private void drawTemporaryCreatePreview(Graphics2D g2d) {
@@ -90,6 +122,23 @@ public class UMLPanel extends JPanel {
         g2d.setStroke(oldStroke);
     }
 
+    private void drawSelectionAreaDraft(Graphics2D g2d) {
+        Vector2D start = umlModel.getSelectionAreaStart();
+        Vector2D end = umlModel.getSelectionAreaEnd();
+        if (start == null || end == null) {
+            return;
+        }
+        int left = Math.min(start.x, end.x);
+        int top = Math.min(start.y, end.y);
+        int width = Math.abs(end.x - start.x);
+        int height = Math.abs(end.y - start.y);
+        Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        g2d.setColor(new Color(60, 110, 200, 180));
+        g2d.drawRect(left, top, width, height);
+        g2d.setStroke(oldStroke);
+    }
+
     private void drawNodeName(Graphics2D g2d, UMLNode node) {
         String name = node.getName();
         if (name == null || name.isBlank()) {
@@ -105,21 +154,21 @@ public class UMLPanel extends JPanel {
     }
 
     private void drawLink(Graphics2D g2d, UMLLink link) {
-        UMLNode sourceNode = umlModel.getNodeById(link.getSourceNodeId());
-        UMLNode targetNode = umlModel.getNodeById(link.getTargetNodeId());
+        UMLNode sourceNode = umlModel.getNodeById(link.sourceNodeId());
+        UMLNode targetNode = umlModel.getNodeById(link.targetNodeId());
         if (sourceNode == null || targetNode == null) {
             return;
         }
 
-        Vector2D start = sourceNode.getPortPosition(link.getSourcePort());
-        Vector2D end = targetNode.getPortPosition(link.getTargetPort());
+        Vector2D start = sourceNode.getPortPosition(link.sourcePort());
+        Vector2D end = targetNode.getPortPosition(link.targetPort());
         g2d.setColor(Color.BLACK);
 
-        if (link.getType() == LinkType.ASSOCIATION) {
+        if (link.type() == LinkType.ASSOCIATION) {
             drawAssociationArrow(g2d, start, end);
-        } else if (link.getType() == LinkType.GENERALIZATION) {
+        } else if (link.type() == LinkType.GENERALIZATION) {
             drawTriangleArrow(g2d, start, end);
-        } else if (link.getType() == LinkType.COMPOSITION) {
+        } else if (link.type() == LinkType.COMPOSITION) {
             drawDiamondArrow(g2d, start, end);
         }
     }

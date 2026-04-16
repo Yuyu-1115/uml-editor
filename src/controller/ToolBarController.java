@@ -5,7 +5,6 @@ import model.Vector2D;
 import model.enums.UserMode;
 import view.UMLPanel;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import java.awt.AWTEvent;
@@ -29,7 +28,6 @@ public class ToolBarController {
     private final Map<UserMode, Color> defaultBackgroundColors = new EnumMap<>(UserMode.class);
     private final Map<UserMode, Border> defaultBorders = new EnumMap<>(UserMode.class);
     private UMLPanel editorPanel;
-    private boolean pointerInsideEditorArea;
     private AWTEventListener temporaryCreateListener;
 
     public ToolBarController(UMLModel model) {
@@ -85,15 +83,6 @@ public class ToolBarController {
 
     public void setEditorPanel(UMLPanel panel) {
         this.editorPanel = panel;
-        this.pointerInsideEditorArea = false;
-    }
-
-    public void onEditorMouseEntered() {
-        pointerInsideEditorArea = true;
-    }
-
-    public void onEditorMouseExited() {
-        pointerInsideEditorArea = false;
     }
 
     private void installTemporaryReleaseListener() {
@@ -178,10 +167,14 @@ public class ToolBarController {
 
     private void setButtonSelected(UserMode mode) {
         JButton button = buttons.get(mode);
+        Border defaultBorder = defaultBorders.get(mode);
         if (button == null) {
             return;
         }
         button.setForeground(Color.BLACK);
-        button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true));
+        button.setBackground(Color.DARK_GRAY);
+        if (defaultBorder != null) {
+            button.setBorder(defaultBorder);
+        }
     }
 }
