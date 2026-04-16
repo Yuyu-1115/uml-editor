@@ -32,6 +32,8 @@ public class UMLModel {
     private Vector2D linkPreviewPoint;
     private Vector2D temporaryCreatePreviewPosition;
     private Vector2D temporaryCreatePreviewSize;
+    private Vector2D selectionAreaStart;
+    private Vector2D selectionAreaEnd;
 
     public void newShape(Vector2D position, Vector2D size) {
         UMLNode shape;
@@ -59,6 +61,7 @@ public class UMLModel {
         clearHover();
         clearLinkDraft();
         clearTemporaryCreatePreview();
+        clearSelectionAreaDraft();
     }
 
     public boolean startTemporaryCreateMode(UserMode mode) {
@@ -213,6 +216,24 @@ public class UMLModel {
 
     public boolean isSelected(UMLNode node) {
         return node != null && selectedNodeIds.contains(node.getId());
+    }
+
+    public void selectNodesFullyInsideArea(int x1, int y1, int x2, int y2) {
+        int left = Math.min(x1, x2);
+        int right = Math.max(x1, x2);
+        int top = Math.min(y1, y2);
+        int bottom = Math.max(y1, y2);
+        List<UMLNode> selectedNodes = new ArrayList<>();
+        for (UMLNode node : getNodesForRender()) {
+            int nodeLeft = node.getPosition().x;
+            int nodeTop = node.getPosition().y;
+            int nodeRight = node.getPosition().x + node.getSize().x;
+            int nodeBottom = node.getPosition().y + node.getSize().y;
+            if (nodeLeft >= left && nodeTop >= top && nodeRight <= right && nodeBottom <= bottom) {
+                selectedNodes.add(node);
+            }
+        }
+        setSelectedNodes(selectedNodes);
     }
 
     public void setHoveredNode(UMLNode node) {
@@ -449,5 +470,27 @@ public class UMLModel {
 
     public Vector2D getTemporaryCreatePreviewSize() {
         return temporaryCreatePreviewSize;
+    }
+
+    public void setSelectionAreaDraft(Vector2D start, Vector2D end) {
+        selectionAreaStart = start;
+        selectionAreaEnd = end;
+    }
+
+    public void clearSelectionAreaDraft() {
+        selectionAreaStart = null;
+        selectionAreaEnd = null;
+    }
+
+    public boolean hasSelectionAreaDraft() {
+        return selectionAreaStart != null && selectionAreaEnd != null;
+    }
+
+    public Vector2D getSelectionAreaStart() {
+        return selectionAreaStart;
+    }
+
+    public Vector2D getSelectionAreaEnd() {
+        return selectionAreaEnd;
     }
 }

@@ -44,6 +44,10 @@ public class UMLPanel extends JPanel {
             drawNodeRecursive(g2d, node);
         }
 
+        if (umlModel.hasSelectionAreaDraft()) {
+            drawSelectionAreaDraft(g2d);
+        }
+
         if (umlModel.hasLinkDraft()) {
             PortHit startPort = umlModel.getLinkStartPort();
             Vector2D startPosition = umlModel.getPortPosition(startPort);
@@ -115,6 +119,23 @@ public class UMLPanel extends JPanel {
         } else {
             g2d.drawRect(position.x, position.y, size.x, size.y);
         }
+        g2d.setStroke(oldStroke);
+    }
+
+    private void drawSelectionAreaDraft(Graphics2D g2d) {
+        Vector2D start = umlModel.getSelectionAreaStart();
+        Vector2D end = umlModel.getSelectionAreaEnd();
+        if (start == null || end == null) {
+            return;
+        }
+        int left = Math.min(start.x, end.x);
+        int top = Math.min(start.y, end.y);
+        int width = Math.abs(end.x - start.x);
+        int height = Math.abs(end.y - start.y);
+        Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        g2d.setColor(new Color(60, 110, 200, 180));
+        g2d.drawRect(left, top, width, height);
         g2d.setStroke(oldStroke);
     }
 
