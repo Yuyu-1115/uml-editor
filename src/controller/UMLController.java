@@ -15,6 +15,7 @@ import java.util.UUID;
 
 public class UMLController extends MouseAdapter {
     private static final int MIN_RESIZE_SIZE = 20;
+    private static final int AREA_SELECT_DRAG_THRESHOLD = 3;
 
     private enum SelectDragAction {
         IDLE,
@@ -34,6 +35,7 @@ public class UMLController extends MouseAdapter {
     private Vector2D resizeInitialPosition;
     private Vector2D resizeInitialSize;
     private Point areaSelectStartPoint;
+    private boolean areaSelectActivated;
 
     public UMLController(UMLModel model, UMLPanel umlPanel, ToolBarController toolBarController) {
         this.model = model;
@@ -64,12 +66,8 @@ public class UMLController extends MouseAdapter {
             UMLNode clickedNode = model.findTopNodeAt(point.x, point.y);
             if (clickedNode == null) {
                 resetSelectDragState();
-                model.clearSelection();
-                model.clearHover();
                 selectDragAction = SelectDragAction.AREA_SELECT;
                 areaSelectStartPoint = point;
-                model.setSelectionAreaDraft(new Vector2D(point.x, point.y), new Vector2D(point.x, point.y));
-                umlPanel.repaint();
                 return;
             }
 
@@ -112,6 +110,16 @@ public class UMLController extends MouseAdapter {
 
         Point point = e.getPoint();
         if (selectDragAction == SelectDragAction.AREA_SELECT && areaSelectStartPoint != null) {
+            int deltaX = Math.abs(point.x - areaSelectStartPoint.x);
+            int deltaY = Math.abs(point.y - areaSelectStartPoint.y);
+            if (!areaSelectActivated) {
+                if (deltaX < AREA_SELECT_DRAG_THRESHOLD && deltaY < AREA_SELECT_DRAG_THRESHOLD) {
+                    return;
+                }
+                areaSelectActivated = true;
+                model.clearSelection();
+                model.clearHover();
+            }
             model.setSelectionAreaDraft(
                     new Vector2D(areaSelectStartPoint.x, areaSelectStartPoint.y),
                     new Vector2D(point.x, point.y)
@@ -170,12 +178,16 @@ public class UMLController extends MouseAdapter {
         }
 
         if (model.getUserMode() == UserMode.SELECT && selectDragAction != SelectDragAction.IDLE) {
-            if (selectDragAction == SelectDragAction.AREA_SELECT && areaSelectStartPoint != null) {
+            boolean shouldRepaint = selectDragAction != SelectDragAction.AREA_SELECT;
+            if (selectDragAction == SelectDragAction.AREA_SELECT && areaSelectStartPoint != null && areaSelectActivated) {
                 Point point = e.getPoint();
                 model.selectNodesFullyInsideArea(areaSelectStartPoint.x, areaSelectStartPoint.y, point.x, point.y);
+                shouldRepaint = true;
             }
             resetSelectDragState();
-            umlPanel.repaint();
+            if (shouldRepaint) {
+                umlPanel.repaint();
+            }
         }
     }
 
@@ -221,6 +233,7 @@ public class UMLController extends MouseAdapter {
         resizeInitialPosition = null;
         resizeInitialSize = null;
         areaSelectStartPoint = null;
+        areaSelectActivated = false;
         model.clearSelectionAreaDraft();
     }
 }
