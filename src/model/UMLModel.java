@@ -9,7 +9,6 @@ import model.shape.UMLOval;
 import model.shape.UMLRect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -19,11 +18,12 @@ import java.util.UUID;
 
 public class UMLModel {
     private static final int PORT_HIT_RADIUS = 12;
+    private static final int MIN_DEPTH = 0;
+    private static final int MAX_DEPTH = 99;
 
     private UserMode userMode = UserMode.SELECT;
     private UserMode previousUserModeForTemporaryCreate;
     private UserMode temporaryCreateMode;
-    private int nextTopDepth = 0;
     private final HashMap<UUID, UMLNode> objectRegistry = new HashMap<>();
     private final List<UMLLink> links = new ArrayList<>();
     private final Set<UUID> selectedNodeIds = new LinkedHashSet<>();
@@ -47,9 +47,8 @@ public class UMLModel {
             default:
                 return;
         }
-        shape.setDepth(nextTopDepth);
-        nextTopDepth--;
         objectRegistry.put(shape.getId(), shape);
+        bringToFront(shape);
     }
 
     public UserMode getUserMode() {
@@ -99,10 +98,6 @@ public class UMLModel {
         return restoredMode;
     }
 
-    public HashMap<UUID, UMLNode> getObjectRegistry() {
-        return objectRegistry;
-    }
-
     public List<UMLNode> getNodesForRender() {
         List<UMLNode> nodes = new ArrayList<>();
         for (UMLNode node : objectRegistry.values()) {
@@ -119,8 +114,33 @@ public class UMLModel {
     }
 
     public void bringToFront(UMLNode node) {
-        node.setDepth(nextTopDepth);
-        nextTopDepth--;
+        if (node == null) {
+            return;
+        }
+        List<UMLNode> depthScope = getDepthScope(node);
+        if (depthScope.isEmpty()) {
+            return;
+        }
+        depthScope.sort(Comparator.comparingInt(UMLNode::getDepth).thenComparing(n -> n.getId().toString()));
+        depthScope.remove(node);
+        depthScope.addFirst(node);
+        reassignDepths(depthScope);
+    }
+
+    private List<UMLNode> getDepthScope(UMLNode node) {
+        if (node.getParent() == null) {
+            return getNodesForRender();
+        }
+        return new ArrayList<>(node.getParent().getChildren());
+    }
+
+    private void reassignDepths(List<UMLNode> orderedNodesFrontToBack) {
+        int availableRange = (MAX_DEPTH - MIN_DEPTH) + 1;
+        for (int index = 0; index < orderedNodesFrontToBack.size(); index++) {
+            UMLNode current = orderedNodesFrontToBack.get(index);
+            int boundedOffset = Math.min(index, availableRange - 1);
+            current.setDepth(MIN_DEPTH + boundedOffset);
+        }
     }
 
     public UMLNode findTopNodeAt(int x, int y) {
@@ -157,32 +177,6 @@ public class UMLModel {
         }
     }
 
-    public void addSelectedNode(UMLNode node) {
-        if (node == null) {
-            return;
-        }
-        selectedNodeIds.add(node.getId());
-    }
-
-    public void removeSelectedNode(UMLNode node) {
-        if (node == null) {
-            return;
-        }
-        selectedNodeIds.remove(node.getId());
-    }
-
-    public void toggleSelectedNode(UMLNode node) {
-        if (node == null) {
-            return;
-        }
-        UUID nodeId = node.getId();
-        if (selectedNodeIds.contains(nodeId)) {
-            selectedNodeIds.remove(nodeId);
-            return;
-        }
-        selectedNodeIds.add(nodeId);
-    }
-
     public void clearSelection() {
         selectedNodeIds.clear();
     }
@@ -197,10 +191,6 @@ public class UMLModel {
                 selectedNodeIds.add(node.getId());
             }
         }
-    }
-
-    public Set<UUID> getSelectedNodeIds() {
-        return Collections.unmodifiableSet(selectedNodeIds);
     }
 
     public List<UMLNode> getSelectedNodes() {
@@ -412,6 +402,17 @@ public class UMLModel {
             return false;
         }
 
+        UMLGroup group = getUmlGroup(topLevelSelectedNodes);
+        objectRegistry.put(group.getId(), group);
+        for (UMLNode node : topLevelSelectedNodes) {
+            group.addChild(node);
+        }
+        bringToFront(group);
+        setSelectedNode(group);
+        return true;
+    }
+
+    private static UMLGroup getUmlGroup(List<UMLNode> topLevelSelectedNodes) {
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
@@ -424,13 +425,7 @@ public class UMLModel {
         }
 
         UMLGroup group = new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));
-        objectRegistry.put(group.getId(), group);
-        for (UMLNode node : topLevelSelectedNodes) {
-            group.addChild(node);
-        }
-        bringToFront(group);
-        setSelectedNode(group);
-        return true;
+        return group;
     }
 
     public boolean ungroupSelectedNode() {
@@ -438,7 +433,7 @@ public class UMLModel {
         if (selectedNodes.size() != 1) {
             return false;
         }
-        UMLNode selectedNode = selectedNodes.get(0);
+        UMLNode selectedNode = selectedNodes.getFirst();
         if (!(selectedNode instanceof UMLGroup group)) {
             return false;
         }
