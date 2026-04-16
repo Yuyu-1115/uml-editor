@@ -154,21 +154,21 @@ public class UMLPanel extends JPanel {
     }
 
     private void drawLink(Graphics2D g2d, UMLLink link) {
-        UMLNode sourceNode = umlModel.getNodeById(link.getSourceNodeId());
-        UMLNode targetNode = umlModel.getNodeById(link.getTargetNodeId());
+        UMLNode sourceNode = umlModel.getNodeById(link.sourceNodeId());
+        UMLNode targetNode = umlModel.getNodeById(link.targetNodeId());
         if (sourceNode == null || targetNode == null) {
             return;
         }
 
-        Vector2D start = sourceNode.getPortPosition(link.getSourcePort());
-        Vector2D end = targetNode.getPortPosition(link.getTargetPort());
+        Vector2D start = sourceNode.getPortPosition(link.sourcePort());
+        Vector2D end = targetNode.getPortPosition(link.targetPort());
         g2d.setColor(Color.BLACK);
 
-        if (link.getType() == LinkType.ASSOCIATION) {
+        if (link.type() == LinkType.ASSOCIATION) {
             drawAssociationArrow(g2d, start, end);
-        } else if (link.getType() == LinkType.GENERALIZATION) {
+        } else if (link.type() == LinkType.GENERALIZATION) {
             drawTriangleArrow(g2d, start, end);
-        } else if (link.getType() == LinkType.COMPOSITION) {
+        } else if (link.type() == LinkType.COMPOSITION) {
             drawDiamondArrow(g2d, start, end);
         }
     }
