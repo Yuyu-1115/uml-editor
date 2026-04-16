@@ -215,9 +215,6 @@ public class UMLModel {
         int bottom = Math.max(y1, y2);
         List<UMLNode> selectedNodes = new ArrayList<>();
         for (UMLNode node : getNodesForRender()) {
-            if (node instanceof UMLGroup) {
-                continue;
-            }
             int nodeLeft = node.getPosition().x;
             int nodeTop = node.getPosition().y;
             int nodeRight = node.getPosition().x + node.getSize().x;
