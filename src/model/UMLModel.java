@@ -28,7 +28,7 @@ public class UMLModel {
     private final List<UMLLink> links = new ArrayList<>();
     private final Set<UUID> selectedNodeIds = new LinkedHashSet<>();
     private UUID hoveredNodeId;
-    private PortHit linkStartPort;
+    private UMLPort linkStartPort;
     private Vector2D linkPreviewPoint;
     private Vector2D temporaryCreatePreviewPosition;
     private Vector2D temporaryCreatePreviewSize;
@@ -154,7 +154,7 @@ public class UMLModel {
         return null;
     }
 
-    public PortHit findTopPortAt(int x, int y) {
+    public UMLPort findTopPortAt(int x, int y) {
         List<UMLNode> nodes = getNodesForRender();
         for (int index = nodes.size() - 1; index >= 0; index--) {
             UMLNode node = nodes.get(index);
@@ -163,7 +163,7 @@ public class UMLModel {
                 int dx = x - portPosition.x;
                 int dy = y - portPosition.y;
                 if (dx * dx + dy * dy <= PORT_HIT_RADIUS * PORT_HIT_RADIUS) {
-                    return new PortHit(node.getId(), portType);
+                    return new UMLPort(node.getId(), portType);
                 }
             }
         }
@@ -245,12 +245,12 @@ public class UMLModel {
         return objectRegistry.get(id);
     }
 
-    public void startLinkDraft(PortHit startPort) {
+    public void startLinkDraft(UMLPort startPort) {
         linkStartPort = startPort;
         linkPreviewPoint = getPortPosition(startPort);
     }
 
-    public PortHit getLinkStartPort() {
+    public UMLPort getLinkStartPort() {
         return linkStartPort;
     }
 
@@ -271,8 +271,8 @@ public class UMLModel {
         return linkStartPort != null;
     }
 
-    public void createLink(UserMode mode, PortHit start, PortHit end) {
-        if (start == null || end == null || start.getOwnerId().equals(end.getOwnerId())) {
+    public void createLink(UserMode mode, UMLPort start, UMLPort end) {
+        if (start == null || end == null || start.ownerId().equals(end.ownerId())) {
             return;
         }
         LinkType linkType = switch (mode) {
@@ -284,18 +284,18 @@ public class UMLModel {
         if (linkType == null) {
             return;
         }
-        links.add(new UMLLink(linkType, start.getOwnerId(), start.getPortType(), end.getOwnerId(), end.getPortType()));
+        links.add(new UMLLink(linkType, start.ownerId(), start.portType(), end.ownerId(), end.portType()));
     }
 
-    public Vector2D getPortPosition(PortHit portHit) {
-        if (portHit == null) {
+    public Vector2D getPortPosition(UMLPort UMLPort) {
+        if (UMLPort == null) {
             return null;
         }
-        UMLNode node = getNodeById(portHit.getOwnerId());
+        UMLNode node = getNodeById(UMLPort.ownerId());
         if (node == null) {
             return null;
         }
-        return node.getPortPosition(portHit.getPortType());
+        return node.getPortPosition(UMLPort.portType());
     }
 
     public void moveNode(UMLNode node, int deltaX, int deltaY) {

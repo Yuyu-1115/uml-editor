@@ -1,6 +1,6 @@
 package view;
 
-import model.PortHit;
+import model.UMLPort;
 import model.UMLLink;
 import model.UMLModel;
 import model.Vector2D;
@@ -49,7 +49,7 @@ public class UMLPanel extends JPanel {
         }
 
         if (umlModel.hasLinkDraft()) {
-            PortHit startPort = umlModel.getLinkStartPort();
+            UMLPort startPort = umlModel.getLinkStartPort();
             Vector2D startPosition = umlModel.getPortPosition(startPort);
             Vector2D endPosition = umlModel.getLinkPreviewPoint();
             if (startPosition != null && endPosition != null) {

@@ -2,7 +2,7 @@ package controller;
 
 import model.UMLModel;
 import model.Vector2D;
-import model.PortHit;
+import model.UMLPort;
 import model.enums.PortType;
 import model.enums.UserMode;
 import model.shape.UMLNode;
@@ -52,10 +52,10 @@ public class UMLController extends MouseAdapter {
 
         Point point = e.getPoint();
         if (model.getUserMode().isLinkMode()) {
-            PortHit startPort = model.findTopPortAt(point.x, point.y);
+            UMLPort startPort = model.findTopPortAt(point.x, point.y);
             if (startPort != null) {
                 model.startLinkDraft(startPort);
-                model.setHoveredNode(model.getNodeById(startPort.getOwnerId()));
+                model.setHoveredNode(model.getNodeById(startPort.ownerId()));
                 model.updateLinkDraftPreview(new Vector2D(point.x, point.y));
                 umlPanel.repaint();
             }
@@ -74,11 +74,11 @@ public class UMLController extends MouseAdapter {
             model.setSelectedNode(clickedNode);
 
             model.bringToFront(clickedNode);
-            PortHit pressedPort = model.findTopPortAt(point.x, point.y);
-            if (pressedPort != null && pressedPort.getOwnerId().equals(clickedNode.getId())) {
+            UMLPort pressedPort = model.findTopPortAt(point.x, point.y);
+            if (pressedPort != null && pressedPort.ownerId().equals(clickedNode.getId())) {
                 selectDragAction = SelectDragAction.RESIZING;
                 activeNodeId = clickedNode.getId();
-                activeResizePort = pressedPort.getPortType();
+                activeResizePort = pressedPort.portType();
                 PortType oppositePort = model.getOppositePortType(activeResizePort);
                 resizeOppositePoint = clickedNode.getPortPosition(oppositePort);
                 resizeInitialPosition = new Vector2D(clickedNode.getPosition().x, clickedNode.getPosition().y);
@@ -168,8 +168,8 @@ public class UMLController extends MouseAdapter {
 
         if (model.getUserMode().isLinkMode() && model.hasLinkDraft()) {
             Point point = e.getPoint();
-            PortHit startPort = model.getLinkStartPort();
-            PortHit endPort = model.findTopPortAt(point.x, point.y);
+            UMLPort startPort = model.getLinkStartPort();
+            UMLPort endPort = model.findTopPortAt(point.x, point.y);
             model.createLink(model.getUserMode(), startPort, endPort);
             model.clearLinkDraft();
             model.clearHover();
