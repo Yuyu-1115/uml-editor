@@ -26,7 +26,6 @@ public class UMLController extends MouseAdapter {
 
     private final UMLModel model;
     private final UMLPanel umlPanel;
-    private final ToolBarController toolBarController;
     private SelectDragAction selectDragAction = SelectDragAction.IDLE;
     private UUID activeNodeId;
     private Point lastDragPoint;
@@ -37,10 +36,9 @@ public class UMLController extends MouseAdapter {
     private Point areaSelectStartPoint;
     private boolean areaSelectActivated;
 
-    public UMLController(UMLModel model, UMLPanel umlPanel, ToolBarController toolBarController) {
+    public UMLController(UMLModel model, UMLPanel umlPanel) {
         this.model = model;
         this.umlPanel = umlPanel;
-        this.toolBarController = toolBarController;
     }
 
     @Override
@@ -210,18 +208,6 @@ public class UMLController extends MouseAdapter {
         UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
         model.setHoveredNode(hoveredNode);
         umlPanel.repaint();
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        super.mouseEntered(e);
-        toolBarController.onEditorMouseEntered();
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-        super.mouseExited(e);
-        toolBarController.onEditorMouseExited();
     }
 
     private void resetSelectDragState() {

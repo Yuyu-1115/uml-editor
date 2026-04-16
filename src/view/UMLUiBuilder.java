@@ -60,7 +60,7 @@ public class UMLUiBuilder {
         canvasPanel.setBackground(Color.WHITE);
         canvasPanel.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
 
-        UMLController umlController = new UMLController(umlModel, canvasPanel, toolBarController);
+        UMLController umlController = new UMLController(umlModel, canvasPanel);
         canvasPanel.addMouseListener(umlController);
         canvasPanel.addMouseMotionListener(umlController);
         return canvasPanel;

@@ -28,7 +28,6 @@ public class ToolBarController {
     private final Map<UserMode, Color> defaultBackgroundColors = new EnumMap<>(UserMode.class);
     private final Map<UserMode, Border> defaultBorders = new EnumMap<>(UserMode.class);
     private UMLPanel editorPanel;
-    private boolean pointerInsideEditorArea;
     private AWTEventListener temporaryCreateListener;
 
     public ToolBarController(UMLModel model) {
@@ -84,15 +83,6 @@ public class ToolBarController {
 
     public void setEditorPanel(UMLPanel panel) {
         this.editorPanel = panel;
-        this.pointerInsideEditorArea = false;
-    }
-
-    public void onEditorMouseEntered() {
-        pointerInsideEditorArea = true;
-    }
-
-    public void onEditorMouseExited() {
-        pointerInsideEditorArea = false;
     }
 
     private void installTemporaryReleaseListener() {

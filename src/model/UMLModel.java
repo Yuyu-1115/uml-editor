@@ -424,8 +424,7 @@ public class UMLModel {
             maxY = Math.max(maxY, node.getPosition().y + node.getSize().y);
         }
 
-        UMLGroup group = new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));
-        return group;
+        return new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));
     }
 
     public boolean ungroupSelectedNode() {
