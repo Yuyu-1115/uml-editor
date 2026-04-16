@@ -81,12 +81,12 @@ public class UMLPanel extends JPanel {
         }
 
         if (node instanceof UMLOval) {
-            g2d.setColor(Color.WHITE);
+            g2d.setColor(node.getLabelColor());
             g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
             g2d.setColor(Color.BLACK);
             g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
         } else {
-            g2d.setColor(Color.WHITE);
+            g2d.setColor(node.getLabelColor());
             g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
             g2d.setColor(Color.BLACK);
             g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
