@@ -302,6 +302,35 @@ public class UMLModel {
         moveNodeRecursive(node, deltaX, deltaY);
     }
 
+    public void moveSelectedNodes(int deltaX, int deltaY) {
+        if (deltaX == 0 && deltaY == 0) {
+            return;
+        }
+
+        List<UMLNode> selectedTopLevelNodes = new ArrayList<>();
+        for (UMLNode node : getSelectedNodes()) {
+            if (node == null) {
+                continue;
+            }
+            UMLNode ancestor = node.getParent();
+            boolean ancestorSelected = false;
+            while (ancestor != null) {
+                if (isSelected(ancestor)) {
+                    ancestorSelected = true;
+                    break;
+                }
+                ancestor = ancestor.getParent();
+            }
+            if (!ancestorSelected) {
+                selectedTopLevelNodes.add(node);
+            }
+        }
+
+        for (UMLNode node : selectedTopLevelNodes) {
+            moveNodeRecursive(node, deltaX, deltaY);
+        }
+    }
+
     private void moveNodeRecursive(UMLNode node, int deltaX, int deltaY) {
         node.setPosition(new Vector2D(node.getPosition().x + deltaX, node.getPosition().y + deltaY));
         for (UMLNode child : node.getChildren()) {

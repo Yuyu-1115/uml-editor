@@ -69,7 +69,10 @@ public class UMLController extends MouseAdapter {
                 return;
             }
 
-            model.setSelectedNode(clickedNode);
+            boolean keepMultiSelection = model.isSelected(clickedNode) && model.getSelectedNodes().size() > 1;
+            if (!keepMultiSelection) {
+                model.setSelectedNode(clickedNode);
+            }
 
             model.bringToFront(clickedNode);
             UMLPort pressedPort = model.findTopPortAt(point.x, point.y);
@@ -137,7 +140,11 @@ public class UMLController extends MouseAdapter {
         if (selectDragAction == SelectDragAction.MOVING && lastDragPoint != null) {
             int deltaX = point.x - lastDragPoint.x;
             int deltaY = point.y - lastDragPoint.y;
-            model.moveNode(activeNode, deltaX, deltaY);
+            if (model.isSelected(activeNode) && model.getSelectedNodes().size() > 1) {
+                model.moveSelectedNodes(deltaX, deltaY);
+            } else {
+                model.moveNode(activeNode, deltaX, deltaY);
+            }
             lastDragPoint = point;
             umlPanel.repaint();
             return;
