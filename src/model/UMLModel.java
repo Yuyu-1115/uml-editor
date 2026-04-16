@@ -39,10 +39,10 @@ public class UMLModel {
         UMLNode shape;
         switch (userMode) {
             case RECT:
-                shape = new UMLRect("shape", position, size);
+                shape = new UMLRect("", position, size);
                 break;
             case OVAL:
-                shape = new UMLOval("shape", position, size);
+                shape = new UMLOval("", position, size);
                 break;
             default:
                 return;
