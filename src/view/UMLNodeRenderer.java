@@ -1,13 +1,13 @@
 package view;
 
 import model.UMLModel;
-import model.UMLNodeVisitor;
+import model.node.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
-import model.shape.UMLGroup;
-import model.shape.UMLNode;
-import model.shape.UMLOval;
-import model.shape.UMLRect;
+import model.node.UMLGroup;
+import model.node.UMLNode;
+import model.node.UMLOval;
+import model.node.UMLRect;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

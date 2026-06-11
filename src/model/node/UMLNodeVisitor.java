@@ -1,8 +1,4 @@
-package model;
-
-import model.shape.UMLGroup;
-import model.shape.UMLOval;
-import model.shape.UMLRect;
+package model.node;
 
 public interface UMLNodeVisitor {
     void visit(UMLRect rect);

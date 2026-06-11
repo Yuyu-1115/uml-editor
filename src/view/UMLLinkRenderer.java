@@ -1,16 +1,19 @@
 package view;
 
-import model.UMLLink;
+import model.link.AssociationLink;
+import model.link.CompositionLink;
+import model.link.GeneralizationLink;
+import model.link.UMLLink;
+import model.link.UMLLinkVisitor;
 import model.UMLModel;
-import model.shape.UMLNode;
+import model.node.UMLNode;
 import model.Vector2D;
-import model.enums.LinkType;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 
-public class UMLLinkRenderer {
+public class UMLLinkRenderer implements UMLLinkVisitor {
     private final Graphics2D g2d;
     private final UMLModel model;
 
@@ -28,26 +31,46 @@ public class UMLLinkRenderer {
     }
 
     public void draw(UMLLink link) {
-        UMLNode sourceNode = model.getNodeById(link.sourceNodeId());
-        UMLNode targetNode = model.getNodeById(link.targetNodeId());
-        if (sourceNode == null || targetNode == null) {
-            return;
-        }
+        link.accept(this);
+    }
 
-        Vector2D start = sourceNode.getPortPosition(link.sourcePort());
-        Vector2D end = targetNode.getPortPosition(link.targetPort());
-        g2d.setColor(Color.BLACK);
-
-        if (link.type() == LinkType.ASSOCIATION) {
-            drawAssociationArrow(start, end);
-        } else if (link.type() == LinkType.GENERALIZATION) {
-            drawTriangleArrow(start, end);
-        } else if (link.type() == LinkType.COMPOSITION) {
-            drawDiamondArrow(start, end);
+    @Override
+    public void visit(AssociationLink link) {
+        Vector2D[] endpoints = getEndpoints(link);
+        if (endpoints != null) {
+            drawAssociationArrow(endpoints[0], endpoints[1]);
         }
     }
 
+    @Override
+    public void visit(GeneralizationLink link) {
+        Vector2D[] endpoints = getEndpoints(link);
+        if (endpoints != null) {
+            drawTriangleArrow(endpoints[0], endpoints[1]);
+        }
+    }
+
+    @Override
+    public void visit(CompositionLink link) {
+        Vector2D[] endpoints = getEndpoints(link);
+        if (endpoints != null) {
+            drawDiamondArrow(endpoints[0], endpoints[1]);
+        }
+    }
+
+    private Vector2D[] getEndpoints(UMLLink link) {
+        UMLNode sourceNode = model.getNodeById(link.sourceNodeId());
+        UMLNode targetNode = model.getNodeById(link.targetNodeId());
+        if (sourceNode == null || targetNode == null) {
+            return null;
+        }
+        Vector2D start = sourceNode.getPortPosition(link.sourcePort());
+        Vector2D end = targetNode.getPortPosition(link.targetPort());
+        return new Vector2D[]{start, end};
+    }
+
     private void drawAssociationArrow(Vector2D start, Vector2D end) {
+        g2d.setColor(Color.BLACK);
         ArrowCoordinates coords = calculateArrowCoordinates(start, end, 14, 7);
         g2d.drawLine(start.x, start.y, coords.tipX, coords.tipY);
         g2d.drawLine(coords.tipX, coords.tipY, coords.leftX, coords.leftY);
@@ -55,6 +78,7 @@ public class UMLLinkRenderer {
     }
 
     private void drawTriangleArrow(Vector2D start, Vector2D end) {
+        g2d.setColor(Color.BLACK);
         ArrowCoordinates coords = calculateArrowCoordinates(start, end, 18, 9);
         Path2D triangle = new Path2D.Double();
         triangle.moveTo(coords.tipX, coords.tipY);
@@ -70,6 +94,7 @@ public class UMLLinkRenderer {
     }
 
     private void drawDiamondArrow(Vector2D start, Vector2D end) {
+        g2d.setColor(Color.BLACK);
         ArrowCoordinates coords = calculateArrowCoordinates(start, end, 14, 7);
         Path2D diamond = new Path2D.Double();
         diamond.moveTo(coords.tipX, coords.tipY);

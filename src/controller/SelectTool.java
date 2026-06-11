@@ -4,7 +4,7 @@ import model.UMLModel;
 import model.Vector2D;
 import model.UMLPort;
 import model.enums.PortType;
-import model.shape.UMLNode;
+import model.node.UMLNode;
 import view.UMLPanel;
 
 import java.awt.Point;

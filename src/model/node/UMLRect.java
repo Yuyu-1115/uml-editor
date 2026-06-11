@@ -1,6 +1,5 @@
-package model.shape;
+package model.node;
 
-import model.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
 

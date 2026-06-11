@@ -1,8 +1,8 @@
 package view;
 
-import model.UMLLink;
+import model.link.UMLLink;
 import model.UMLModel;
-import model.shape.UMLNode;
+import model.node.UMLNode;
 
 import javax.swing.JPanel;
 import java.awt.Graphics;
