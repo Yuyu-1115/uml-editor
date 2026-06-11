@@ -1,25 +1,15 @@
 package view;
 
-import model.UMLPort;
 import model.UMLLink;
 import model.UMLModel;
-import model.Vector2D;
-import model.enums.LinkType;
-import model.enums.PortType;
-import model.enums.UserMode;
-import model.shape.UMLGroup;
 import model.shape.UMLNode;
-import model.shape.UMLOval;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Path2D;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import javax.swing.JPanel;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 
 public class UMLPanel extends JPanel {
-    private static final int PORT_SIZE = 12;
     private final UMLModel umlModel;
 
     public UMLPanel(UMLModel umlModel) {
@@ -32,183 +22,20 @@ public class UMLPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        // 1. Draw connections / links
+        UMLLinkRenderer linkRenderer = new UMLLinkRenderer(g2d, umlModel);
         for (UMLLink link : umlModel.getLinksForRender()) {
-            drawLink(g2d, link);
+            linkRenderer.draw(link);
         }
 
-        if (umlModel.hasTemporaryCreatePreview()) {
-            drawTemporaryCreatePreview(g2d);
-        }
-
-        UMLNodeRenderer renderer = new UMLNodeRenderer(g2d, umlModel);
+        // 2. Draw shapes using Visitor pattern
+        UMLNodeRenderer nodeRenderer = new UMLNodeRenderer(g2d, umlModel);
         for (UMLNode node : umlModel.getNodesForRender()) {
-            node.accept(renderer);
+            node.accept(nodeRenderer);
         }
 
-        if (umlModel.hasSelectionAreaDraft()) {
-            drawSelectionAreaDraft(g2d);
-        }
-
-        if (umlModel.hasLinkDraft()) {
-            UMLPort startPort = umlModel.getLinkStartPort();
-            Vector2D startPosition = umlModel.getPortPosition(startPort);
-            Vector2D endPosition = umlModel.getLinkPreviewPoint();
-            if (startPosition != null && endPosition != null) {
-                g2d.setColor(Color.GRAY);
-                g2d.drawLine(startPosition.x, startPosition.y, endPosition.x, endPosition.y);
-            }
-        }
-    }
-
-
-
-    private void drawTemporaryCreatePreview(Graphics2D g2d) {
-        Vector2D position = umlModel.getTemporaryCreatePreviewPosition();
-        Vector2D size = umlModel.getTemporaryCreatePreviewSize();
-        if (position == null || size == null) {
-            return;
-        }
-        Stroke oldStroke = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-        g2d.setColor(new Color(80, 80, 80, 180));
-        if (umlModel.getTemporaryCreateMode() == UserMode.OVAL) {
-            g2d.drawOval(position.x, position.y, size.x, size.y);
-        } else {
-            g2d.drawRect(position.x, position.y, size.x, size.y);
-        }
-        g2d.setStroke(oldStroke);
-    }
-
-    private void drawSelectionAreaDraft(Graphics2D g2d) {
-        Vector2D start = umlModel.getSelectionAreaStart();
-        Vector2D end = umlModel.getSelectionAreaEnd();
-        if (start == null || end == null) {
-            return;
-        }
-        int left = Math.min(start.x, end.x);
-        int top = Math.min(start.y, end.y);
-        int width = Math.abs(end.x - start.x);
-        int height = Math.abs(end.y - start.y);
-        Stroke oldStroke = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-        g2d.setColor(new Color(60, 110, 200, 180));
-        g2d.drawRect(left, top, width, height);
-        g2d.setStroke(oldStroke);
-    }
-
-
-
-    private void drawLink(Graphics2D g2d, UMLLink link) {
-        UMLNode sourceNode = umlModel.getNodeById(link.sourceNodeId());
-        UMLNode targetNode = umlModel.getNodeById(link.targetNodeId());
-        if (sourceNode == null || targetNode == null) {
-            return;
-        }
-
-        Vector2D start = sourceNode.getPortPosition(link.sourcePort());
-        Vector2D end = targetNode.getPortPosition(link.targetPort());
-        g2d.setColor(Color.BLACK);
-
-        if (link.type() == LinkType.ASSOCIATION) {
-            drawAssociationArrow(g2d, start, end);
-        } else if (link.type() == LinkType.GENERALIZATION) {
-            drawTriangleArrow(g2d, start, end);
-        } else if (link.type() == LinkType.COMPOSITION) {
-            drawDiamondArrow(g2d, start, end);
-        }
-    }
-
-    private void drawAssociationArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int tipX = end.x;
-        int tipY = end.y;
-        int armLength = 14;
-        int armWidth = 7;
-        int baseX = (int) Math.round(tipX - ux * armLength);
-        int baseY = (int) Math.round(tipY - uy * armLength);
-        int leftX = (int) Math.round(baseX + px * armWidth);
-        int leftY = (int) Math.round(baseY + py * armWidth);
-        int rightX = (int) Math.round(baseX - px * armWidth);
-        int rightY = (int) Math.round(baseY - py * armWidth);
-
-        g2d.drawLine(start.x, start.y, tipX, tipY);
-        g2d.drawLine(tipX, tipY, leftX, leftY);
-        g2d.drawLine(tipX, tipY, rightX, rightY);
-    }
-
-    private void drawTriangleArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int arrowLength = 18;
-        int arrowWidth = 9;
-        int tipX = end.x;
-        int tipY = end.y;
-        int baseX = (int) Math.round(tipX - ux * arrowLength);
-        int baseY = (int) Math.round(tipY - uy * arrowLength);
-        int leftX = (int) Math.round(baseX + px * arrowWidth);
-        int leftY = (int) Math.round(baseY + py * arrowWidth);
-        int rightX = (int) Math.round(baseX - px * arrowWidth);
-        int rightY = (int) Math.round(baseY - py * arrowWidth);
-
-        Path2D triangle = new Path2D.Double();
-        triangle.moveTo(tipX, tipY);
-        triangle.lineTo(leftX, leftY);
-        triangle.lineTo(rightX, rightY);
-        triangle.closePath();
-        g2d.drawLine(start.x, start.y, baseX, baseY);
-        g2d.setColor(Color.WHITE);
-        g2d.fill(triangle);
-        g2d.setColor(Color.BLACK);
-        g2d.draw(triangle);
-    }
-
-    private void drawDiamondArrow(Graphics2D g2d, Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int length = 14;
-        int width = 7;
-        int tipX = end.x;
-        int tipY = end.y;
-        int backX = (int) Math.round(tipX - ux * length * 2.0);
-        int backY = (int) Math.round(tipY - uy * length * 2.0);
-        int middleX = (int) Math.round(tipX - ux * length);
-        int middleY = (int) Math.round(tipY - uy * length);
-
-        int leftX = (int) Math.round(middleX + px * width);
-        int leftY = (int) Math.round(middleY + py * width);
-        int rightX = (int) Math.round(middleX - px * width);
-        int rightY = (int) Math.round(middleY - py * width);
-
-        Path2D diamond = new Path2D.Double();
-        diamond.moveTo(tipX, tipY);
-        diamond.lineTo(leftX, leftY);
-        diamond.lineTo(backX, backY);
-        diamond.lineTo(rightX, rightY);
-        diamond.closePath();
-        g2d.drawLine(start.x, start.y, backX, backY);
-        g2d.setColor(Color.WHITE);
-        g2d.fill(diamond);
-        g2d.setColor(Color.BLACK);
-        g2d.draw(diamond);
-    }
-
-    private double[] calculateUnitDirection(Vector2D start, Vector2D end) {
-        int dx = end.x - start.x;
-        int dy = end.y - start.y;
-        double magnitude = Math.hypot(dx, dy);
-        if (magnitude == 0) {
-            return new double[]{1.0, 0.0};
-        }
-        return new double[]{dx / magnitude, dy / magnitude};
+        // 3. Draw temporary drafts (selection boxes, creation previews, link drafts)
+        UMLDraftRenderer draftRenderer = new UMLDraftRenderer(g2d, umlModel);
+        draftRenderer.drawDrafts();
     }
 }
