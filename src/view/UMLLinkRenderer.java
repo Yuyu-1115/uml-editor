@@ -14,6 +14,14 @@ public class UMLLinkRenderer {
     private final Graphics2D g2d;
     private final UMLModel model;
 
+    private static record ArrowCoordinates(
+        int tipX, int tipY,
+        int baseX, int baseY,
+        int leftX, int leftY,
+        int rightX, int rightY,
+        int backX, int backY
+    ) {}
+
     public UMLLinkRenderer(Graphics2D g2d, UMLModel model) {
         this.g2d = g2d;
         this.model = model;
@@ -40,50 +48,21 @@ public class UMLLinkRenderer {
     }
 
     private void drawAssociationArrow(Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int tipX = end.x;
-        int tipY = end.y;
-        int armLength = 14;
-        int armWidth = 7;
-        int baseX = (int) Math.round(tipX - ux * armLength);
-        int baseY = (int) Math.round(tipY - uy * armLength);
-        int leftX = (int) Math.round(baseX + px * armWidth);
-        int leftY = (int) Math.round(baseY + py * armWidth);
-        int rightX = (int) Math.round(baseX - px * armWidth);
-        int rightY = (int) Math.round(baseY - py * armWidth);
-
-        g2d.drawLine(start.x, start.y, tipX, tipY);
-        g2d.drawLine(tipX, tipY, leftX, leftY);
-        g2d.drawLine(tipX, tipY, rightX, rightY);
+        ArrowCoordinates coords = calculateArrowCoordinates(start, end, 14, 7);
+        g2d.drawLine(start.x, start.y, coords.tipX, coords.tipY);
+        g2d.drawLine(coords.tipX, coords.tipY, coords.leftX, coords.leftY);
+        g2d.drawLine(coords.tipX, coords.tipY, coords.rightX, coords.rightY);
     }
 
     private void drawTriangleArrow(Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int arrowLength = 18;
-        int arrowWidth = 9;
-        int tipX = end.x;
-        int tipY = end.y;
-        int baseX = (int) Math.round(tipX - ux * arrowLength);
-        int baseY = (int) Math.round(tipY - uy * arrowLength);
-        int leftX = (int) Math.round(baseX + px * arrowWidth);
-        int leftY = (int) Math.round(baseY + py * arrowWidth);
-        int rightX = (int) Math.round(baseX - px * arrowWidth);
-        int rightY = (int) Math.round(baseY - py * arrowWidth);
-
+        ArrowCoordinates coords = calculateArrowCoordinates(start, end, 18, 9);
         Path2D triangle = new Path2D.Double();
-        triangle.moveTo(tipX, tipY);
-        triangle.lineTo(leftX, leftY);
-        triangle.lineTo(rightX, rightY);
+        triangle.moveTo(coords.tipX, coords.tipY);
+        triangle.lineTo(coords.leftX, coords.leftY);
+        triangle.lineTo(coords.rightX, coords.rightY);
         triangle.closePath();
-        g2d.drawLine(start.x, start.y, baseX, baseY);
+
+        g2d.drawLine(start.x, start.y, coords.baseX, coords.baseY);
         g2d.setColor(Color.WHITE);
         g2d.fill(triangle);
         g2d.setColor(Color.BLACK);
@@ -91,45 +70,51 @@ public class UMLLinkRenderer {
     }
 
     private void drawDiamondArrow(Vector2D start, Vector2D end) {
-        double[] unit = calculateUnitDirection(start, end);
-        double ux = unit[0];
-        double uy = unit[1];
-        double px = -uy;
-        double py = ux;
-        int length = 14;
-        int width = 7;
-        int tipX = end.x;
-        int tipY = end.y;
-        int backX = (int) Math.round(tipX - ux * length * 2.0);
-        int backY = (int) Math.round(tipY - uy * length * 2.0);
-        int middleX = (int) Math.round(tipX - ux * length);
-        int middleY = (int) Math.round(tipY - uy * length);
-
-        int leftX = (int) Math.round(middleX + px * width);
-        int leftY = (int) Math.round(middleY + py * width);
-        int rightX = (int) Math.round(middleX - px * width);
-        int rightY = (int) Math.round(middleY - py * width);
-
+        ArrowCoordinates coords = calculateArrowCoordinates(start, end, 14, 7);
         Path2D diamond = new Path2D.Double();
-        diamond.moveTo(tipX, tipY);
-        diamond.lineTo(leftX, leftY);
-        diamond.lineTo(backX, backY);
-        diamond.lineTo(rightX, rightY);
+        diamond.moveTo(coords.tipX, coords.tipY);
+        diamond.lineTo(coords.leftX, coords.leftY);
+        diamond.lineTo(coords.backX, coords.backY);
+        diamond.lineTo(coords.rightX, coords.rightY);
         diamond.closePath();
-        g2d.drawLine(start.x, start.y, backX, backY);
+
+        g2d.drawLine(start.x, start.y, coords.backX, coords.backY);
         g2d.setColor(Color.WHITE);
         g2d.fill(diamond);
         g2d.setColor(Color.BLACK);
         g2d.draw(diamond);
     }
 
-    private double[] calculateUnitDirection(Vector2D start, Vector2D end) {
+    private ArrowCoordinates calculateArrowCoordinates(Vector2D start, Vector2D end, int length, int width) {
         int dx = end.x - start.x;
         int dy = end.y - start.y;
         double magnitude = Math.hypot(dx, dy);
-        if (magnitude == 0) {
-            return new double[]{1.0, 0.0};
+
+        double ux = 1.0;
+        double uy = 0.0;
+        if (magnitude != 0) {
+            ux = dx / magnitude;
+            uy = dy / magnitude;
         }
-        return new double[]{dx / magnitude, dy / magnitude};
+
+        double px = -uy;
+        double py = ux;
+
+        int tipX = end.x;
+        int tipY = end.y;
+
+        int baseX = (int) Math.round(tipX - ux * length);
+        int baseY = (int) Math.round(tipY - uy * length);
+
+        int leftX = (int) Math.round(baseX + px * width);
+        int leftY = (int) Math.round(baseY + py * width);
+
+        int rightX = (int) Math.round(baseX - px * width);
+        int rightY = (int) Math.round(baseY - py * width);
+
+        int backX = (int) Math.round(tipX - ux * length * 2.0);
+        int backY = (int) Math.round(tipY - uy * length * 2.0);
+
+        return new ArrowCoordinates(tipX, tipY, baseX, baseY, leftX, leftY, rightX, rightY, backX, backY);
     }
 }
