@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class UMLNode {
-    private UUID id;
+    private final UUID id;
     private String name;
     private int depth;
     private UMLGroup parent;
@@ -59,10 +59,6 @@ public abstract class UMLNode {
     }
 
     public void setSize(Vector2D size) {
-        this.size = size;
-    }
-
-    public UMLNode(Vector2D size) {
         this.size = size;
     }
 
