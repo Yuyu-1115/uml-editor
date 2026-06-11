@@ -1,11 +1,12 @@
 package controller;
 
+import model.DraftModel;
+import model.SelectionModel;
 import model.UMLModel;
-import model.Vector2D;
-import model.UMLPort;
+import record.Vector2D;
+import record.UMLPort;
 import model.enums.PortType;
 import model.node.UMLNode;
-import view.UMLPanel;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -23,7 +24,8 @@ public class SelectTool implements CanvasTool {
     }
 
     private final UMLModel model;
-    private final UMLPanel umlPanel;
+    private final SelectionModel selectionModel;
+    private final DraftModel draftModel;
 
     private SelectDragAction selectDragAction = SelectDragAction.IDLE;
     private UUID activeNodeId;
@@ -35,9 +37,10 @@ public class SelectTool implements CanvasTool {
     private Point areaSelectStartPoint;
     private boolean areaSelectActivated;
 
-    public SelectTool(UMLModel model, UMLPanel umlPanel) {
+    public SelectTool(UMLModel model) {
         this.model = model;
-        this.umlPanel = umlPanel;
+        this.selectionModel = model.getSelectionModel();
+        this.draftModel = model.getDraftModel();
     }
 
     @Override
@@ -55,9 +58,9 @@ public class SelectTool implements CanvasTool {
             return;
         }
 
-        boolean keepMultiSelection = model.isSelected(clickedNode) && model.getSelectedNodes().size() > 1;
+        boolean keepMultiSelection = selectionModel.isSelected(clickedNode) && selectionModel.getSelectedNodes().size() > 1;
         if (!keepMultiSelection) {
-            model.setSelectedNode(clickedNode);
+            selectionModel.setSelectedNode(clickedNode);
         }
 
         model.bringToFront(clickedNode);
@@ -66,16 +69,16 @@ public class SelectTool implements CanvasTool {
             selectDragAction = SelectDragAction.RESIZING;
             activeNodeId = clickedNode.getId();
             activeResizePort = pressedPort.portType();
-            PortType oppositePort = model.getOppositePortType(activeResizePort);
+            PortType oppositePort = activeResizePort.getOpposite();
             resizeOppositePoint = clickedNode.getPortPosition(oppositePort);
-            resizeInitialPosition = new Vector2D(clickedNode.getPosition().x, clickedNode.getPosition().y);
-            resizeInitialSize = new Vector2D(clickedNode.getSize().x, clickedNode.getSize().y);
+            resizeInitialPosition = new Vector2D(clickedNode.getPosition().x(), clickedNode.getPosition().y());
+            resizeInitialSize = new Vector2D(clickedNode.getSize().x(), clickedNode.getSize().y());
         } else {
             selectDragAction = SelectDragAction.MOVING;
             activeNodeId = clickedNode.getId();
             lastDragPoint = point;
         }
-        umlPanel.repaint();
+        model.fireModelChanged();
     }
 
     @Override
@@ -89,14 +92,14 @@ public class SelectTool implements CanvasTool {
                     return;
                 }
                 areaSelectActivated = true;
-                model.clearSelection();
-                model.clearHover();
+                selectionModel.clearSelection();
+                selectionModel.clearHover();
             }
-            model.setSelectionAreaDraft(
+            draftModel.setSelectionAreaDraft(
                     new Vector2D(areaSelectStartPoint.x, areaSelectStartPoint.y),
                     new Vector2D(point.x, point.y)
             );
-            umlPanel.repaint();
+            model.fireModelChanged();
             return;
         }
 
@@ -106,24 +109,18 @@ public class SelectTool implements CanvasTool {
             return;
         }
 
-        model.setHoveredNode(activeNode);
+        selectionModel.setHoveredNode(activeNode);
 
         if (selectDragAction == SelectDragAction.MOVING && lastDragPoint != null) {
             int deltaX = point.x - lastDragPoint.x;
             int deltaY = point.y - lastDragPoint.y;
-            if (model.isSelected(activeNode) && model.getSelectedNodes().size() > 1) {
-                model.moveSelectedNodes(deltaX, deltaY);
-            } else {
-                model.moveNode(activeNode, deltaX, deltaY);
-            }
+            model.moveSelectedNodes(deltaX, deltaY);
             lastDragPoint = point;
-            umlPanel.repaint();
             return;
         }
 
         if (selectDragAction == SelectDragAction.RESIZING && activeResizePort != null) {
-            model.resizeNodeByPort(
-                    activeNode,
+            activeNode.resizeByPort(
                     activeResizePort,
                     resizeOppositePoint,
                     new Vector2D(point.x, point.y),
@@ -131,7 +128,7 @@ public class SelectTool implements CanvasTool {
                     resizeInitialSize,
                     MIN_RESIZE_SIZE
             );
-            umlPanel.repaint();
+            model.fireModelChanged();
         }
     }
 
@@ -145,12 +142,12 @@ public class SelectTool implements CanvasTool {
             boolean shouldRepaint = selectDragAction != SelectDragAction.AREA_SELECT;
             if (selectDragAction == SelectDragAction.AREA_SELECT && areaSelectStartPoint != null && areaSelectActivated) {
                 Point point = e.getPoint();
-                model.selectNodesFullyInsideArea(areaSelectStartPoint.x, areaSelectStartPoint.y, point.x, point.y);
+                selectNodesFullyInsideArea(areaSelectStartPoint.x, areaSelectStartPoint.y, point.x, point.y);
                 shouldRepaint = true;
             }
             resetSelectDragState();
             if (shouldRepaint) {
-                umlPanel.repaint();
+                model.fireModelChanged();
             }
         }
     }
@@ -158,15 +155,15 @@ public class SelectTool implements CanvasTool {
     @Override
     public void mouseMoved(MouseEvent e) {
         if (model.isTemporaryCreateModeActive()) {
-            model.clearHover();
-            umlPanel.repaint();
+            selectionModel.clearHover();
+            model.fireModelChanged();
             return;
         }
 
         Point point = e.getPoint();
         UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
-        model.setHoveredNode(hoveredNode);
-        umlPanel.repaint();
+        selectionModel.setHoveredNode(hoveredNode);
+        model.fireModelChanged();
     }
 
     private void resetSelectDragState() {
@@ -179,6 +176,24 @@ public class SelectTool implements CanvasTool {
         resizeInitialSize = null;
         areaSelectStartPoint = null;
         areaSelectActivated = false;
-        model.clearSelectionAreaDraft();
+        draftModel.clearSelectionAreaDraft();
+    }
+
+    private void selectNodesFullyInsideArea(int x1, int y1, int x2, int y2) {
+        int left = Math.min(x1, x2);
+        int right = Math.max(x1, x2);
+        int top = Math.min(y1, y2);
+        int bottom = Math.max(y1, y2);
+        java.util.List<UMLNode> selectedNodes = new java.util.ArrayList<>();
+        for (UMLNode node : model.getNodesForRender()) {
+            int nodeLeft = node.getPosition().x();
+            int nodeTop = node.getPosition().y();
+            int nodeRight = node.getPosition().x() + node.getSize().x();
+            int nodeBottom = node.getPosition().y() + node.getSize().y();
+            if (nodeLeft >= left && nodeTop >= top && nodeRight <= right && nodeBottom <= bottom) {
+                selectedNodes.add(node);
+            }
+        }
+        selectionModel.setSelectedNodes(selectedNodes);
     }
 }

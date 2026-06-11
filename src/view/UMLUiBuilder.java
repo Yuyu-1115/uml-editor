@@ -2,6 +2,7 @@ package view;
 
 import controller.ToolBarController;
 import controller.UMLController;
+import model.SelectionModel;
 import model.UMLModel;
 import model.enums.UserMode;
 import model.node.UMLGroup;
@@ -28,11 +29,13 @@ import java.util.Map;
 public class UMLUiBuilder {
     private static final Map<String, Color> COLOR_NAME_MAP = createColorNameMap();
     private final UMLModel umlModel;
+    private final SelectionModel selectionModel;
     private final ToolBarController toolBarController;
     private UMLPanel canvasPanel;
 
     public UMLUiBuilder(UMLModel umlModel) {
         this.umlModel = umlModel;
+        this.selectionModel = umlModel.getSelectionModel();
         this.toolBarController = new ToolBarController(umlModel);
     }
 
@@ -71,19 +74,11 @@ public class UMLUiBuilder {
         menuBar.add(new JMenu("File"));
         JMenu editMenu = new JMenu("Edit");
         JMenuItem groupItem = new JMenuItem("Group");
-        groupItem.addActionListener(e -> {
-            if (umlModel.groupSelectedNodes() && canvasPanel != null) {
-                canvasPanel.repaint();
-            }
-        });
+        groupItem.addActionListener(e -> umlModel.groupSelectedNodes());
         JMenuItem labelItem = new JMenuItem("Label");
         labelItem.addActionListener(e -> showLabelStyleDialog());
         JMenuItem ungroupItem = new JMenuItem("Ungroup");
-        ungroupItem.addActionListener(e -> {
-            if (umlModel.ungroupSelectedNode() && canvasPanel != null) {
-                canvasPanel.repaint();
-            }
-        });
+        ungroupItem.addActionListener(e -> umlModel.ungroupSelectedNode());
         editMenu.add(labelItem);
         editMenu.add(groupItem);
         editMenu.add(ungroupItem);
@@ -92,11 +87,11 @@ public class UMLUiBuilder {
     }
 
     private void showLabelStyleDialog() {
-        List<UMLNode> selectedNodes = umlModel.getSelectedNodes();
+        List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         if (selectedNodes.size() != 1) {
             return;
         }
-        UMLNode selectedNode = selectedNodes.get(0);
+        UMLNode selectedNode = selectedNodes.getFirst();
         if (selectedNode instanceof UMLGroup) {
             return;
         }
@@ -124,9 +119,7 @@ public class UMLUiBuilder {
         selectedNode.setName(nameField.getText());
         String selectedColorName = (String) colorDropdown.getSelectedItem();
         selectedNode.setLabelColor(COLOR_NAME_MAP.getOrDefault(selectedColorName, Color.WHITE));
-        if (canvasPanel != null) {
-            canvasPanel.repaint();
-        }
+        umlModel.fireModelChanged();
     }
 
     private static String toColorName(Color color) {

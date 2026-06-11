@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "121-java-object-oriented-design": {
+      "source": "jabrena/cursor-rules-java",
+      "sourceType": "github",
+      "skillPath": "skills/121-java-object-oriented-design/SKILL.md",
+      "computedHash": "d4a53848d7fb14367f6baca865ec46e348c0daa1abd7814b4d8108e2fc8ea3db"
+    },
+    "design-patterns": {
+      "source": "ratacat/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-patterns/SKILL.md",
+      "computedHash": "a8199678b6e436810a476ed3cc339be658ef07c40daf4b5d47024a3cf42a637a"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 package model.node;
 
-import model.Vector2D;
+import record.Vector2D;
 import model.enums.PortType;
 
 import java.util.List;
@@ -13,13 +13,13 @@ public class UMLOval extends UMLNode {
 
     @Override
     public boolean containsPoint(int x, int y) {
-        double radiusX = size.x / 2.0;
-        double radiusY = size.y / 2.0;
+        double radiusX = getSize().x() / 2.0;
+        double radiusY = getSize().y() / 2.0;
         if (radiusX <= 0 || radiusY <= 0) {
             return false;
         }
-        double centerX = position.x + radiusX;
-        double centerY = position.y + radiusY;
+        double centerX = getPosition().x() + radiusX;
+        double centerY = getPosition().y() + radiusY;
         double normalizedX = (x - centerX) / radiusX;
         double normalizedY = (y - centerY) / radiusY;
         return normalizedX * normalizedX + normalizedY * normalizedY <= 1.0;
@@ -42,6 +42,6 @@ public class UMLOval extends UMLNode {
 
     @Override
     public void move(int deltaX, int deltaY) {
-        this.position = new Vector2D(this.position.x + deltaX, this.position.y + deltaY);
+        setPosition(new Vector2D(getPosition().x() + deltaX, getPosition().y() + deltaY));
     }
 }

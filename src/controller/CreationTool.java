@@ -1,8 +1,11 @@
 package controller;
 
+import model.DraftModel;
 import model.UMLModel;
-import model.Vector2D;
+import record.Vector2D;
 import model.enums.UserMode;
+import model.node.UMLNode;
+import model.node.UMLNodeFactory;
 import view.UMLPanel;
 
 import javax.swing.SwingUtilities;
@@ -12,17 +15,19 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.MouseEvent;
 
-public class CreationTool implements AWTEventListener {
+public class CreationTool implements AWTEventListener, CanvasTool {
     private static final int CREATE_PREVIEW_WIDTH = 100;
     private static final int CREATE_PREVIEW_HEIGHT = 100;
 
     private final UMLModel model;
+    private final DraftModel draftModel;
     private final UMLPanel panel;
     private final UserMode mode;
     private final Runnable onFinished;
 
     public CreationTool(UMLModel model, UMLPanel panel, UserMode mode, Runnable onFinished) {
         this.model = model;
+        this.draftModel = model.getDraftModel();
         this.panel = panel;
         this.mode = mode;
         this.onFinished = onFinished;
@@ -64,11 +69,12 @@ public class CreationTool implements AWTEventListener {
             Point releasePoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
             SwingUtilities.convertPointFromScreen(releasePoint, panel);
             if (panel.contains(releasePoint)) {
-                model.newShape(
-                        new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
-                        new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
-                );
-                panel.repaint();
+                Vector2D position = new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2));
+                Vector2D size = new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT);
+                UMLNode shape = UMLNodeFactory.createNode(mode, position, size);
+                if (shape != null) {
+                    model.addNode(shape);
+                }
             }
         }
 
@@ -85,14 +91,30 @@ public class CreationTool implements AWTEventListener {
         Point previewPoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
         SwingUtilities.convertPointFromScreen(previewPoint, panel);
         if (!panel.contains(previewPoint)) {
-            model.clearTemporaryCreatePreview();
-            panel.repaint();
+            draftModel.clearTemporaryCreatePreview();
+            model.fireModelChanged();
             return;
         }
-        model.setTemporaryCreatePreview(
+        draftModel.setTemporaryCreatePreview(
                 new Vector2D(previewPoint.x - (CREATE_PREVIEW_WIDTH / 2), previewPoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
                 new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
         );
-        panel.repaint();
+        model.fireModelChanged();
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
     }
 }

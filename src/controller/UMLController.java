@@ -1,5 +1,6 @@
 package controller;
 
+import model.SelectionModel;
 import model.UMLModel;
 import model.enums.UserMode;
 import view.UMLPanel;
@@ -11,23 +12,22 @@ import java.util.Map;
 
 public class UMLController extends MouseAdapter {
     private final UMLModel model;
-    private final UMLPanel umlPanel;
     private final Map<UserMode, CanvasTool> tools = new EnumMap<>(UserMode.class);
     private final CanvasTool noOpTool;
 
     public UMLController(UMLModel model, UMLPanel umlPanel) {
         this.model = model;
-        this.umlPanel = umlPanel;
 
-        CanvasTool selectTool = new SelectTool(model, umlPanel);
-        CanvasTool linkTool = new LinkTool(model, umlPanel);
+        SelectionModel selectionModel = model.getSelectionModel();
+        CanvasTool selectTool = new SelectTool(model);
+        CanvasTool linkTool = new LinkTool(model);
         noOpTool = new CanvasTool() {
             @Override public void mousePressed(MouseEvent e) {}
             @Override public void mouseDragged(MouseEvent e) {}
             @Override public void mouseReleased(MouseEvent e) {}
             @Override public void mouseMoved(MouseEvent e) {
-                model.clearHover();
-                umlPanel.repaint();
+                selectionModel.clearHover();
+                model.fireModelChanged();
             }
         };
 
@@ -45,25 +45,21 @@ public class UMLController extends MouseAdapter {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        super.mousePressed(e);
         getActiveTool().mousePressed(e);
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        super.mouseDragged(e);
         getActiveTool().mouseDragged(e);
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        super.mouseReleased(e);
         getActiveTool().mouseReleased(e);
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        super.mouseMoved(e);
         getActiveTool().mouseMoved(e);
     }
 }
