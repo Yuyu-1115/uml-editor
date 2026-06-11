@@ -28,7 +28,6 @@ public class ToolBarController {
     private final Map<UserMode, Color> defaultBackgroundColors = new EnumMap<>(UserMode.class);
     private final Map<UserMode, Border> defaultBorders = new EnumMap<>(UserMode.class);
     private UMLPanel editorPanel;
-    private AWTEventListener temporaryCreateListener;
 
     public ToolBarController(UMLModel model) {
         this.model = model;
@@ -50,12 +49,11 @@ public class ToolBarController {
                     if (!SwingUtilities.isLeftMouseButton(e)) {
                         return;
                     }
-                    if (model.startTemporaryCreateMode(mode)) {
-                        UserMode previousMode = model.getPreviousUserModeForTemporaryCreate();
-                        setButtonDefault(previousMode);
-                        setButtonSelected(mode);
-                        installTemporaryReleaseListener();
-                    }
+                    UserMode previousMode = model.getUserMode();
+                    CreationTool creationTool = new CreationTool(model, editorPanel, mode, ToolBarController.this::restoreAfterTemporaryCreate);
+                    creationTool.start();
+                    setButtonDefault(previousMode);
+                    setButtonSelected(mode);
                 }
             });
             return;
@@ -85,72 +83,7 @@ public class ToolBarController {
         this.editorPanel = panel;
     }
 
-    private void installTemporaryReleaseListener() {
-        removeTemporaryReleaseListener();
-        temporaryCreateListener = event -> {
-            if (!(event instanceof MouseEvent mouseEvent)) {
-                return;
-            }
-            if (!model.isTemporaryCreateModeActive()) {
-                removeTemporaryReleaseListener();
-                return;
-            }
 
-            if (mouseEvent.getID() == MouseEvent.MOUSE_MOVED || mouseEvent.getID() == MouseEvent.MOUSE_DRAGGED) {
-                updateTemporaryCreatePreview(mouseEvent);
-                return;
-            }
-
-            if (mouseEvent.getID() != MouseEvent.MOUSE_RELEASED || !SwingUtilities.isLeftMouseButton(mouseEvent)) {
-                return;
-            }
-
-            if (editorPanel != null) {
-                Point releasePoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
-                SwingUtilities.convertPointFromScreen(releasePoint, editorPanel);
-                if (editorPanel.contains(releasePoint)) {
-                    model.newShape(
-                            new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
-                            new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
-                    );
-                    editorPanel.repaint();
-                }
-            }
-
-            restoreAfterTemporaryCreate();
-            removeTemporaryReleaseListener();
-        };
-        Toolkit.getDefaultToolkit().addAWTEventListener(
-                temporaryCreateListener,
-                AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK
-        );
-    }
-
-    private void removeTemporaryReleaseListener() {
-        if (temporaryCreateListener == null) {
-            return;
-        }
-        Toolkit.getDefaultToolkit().removeAWTEventListener(temporaryCreateListener);
-        temporaryCreateListener = null;
-    }
-
-    private void updateTemporaryCreatePreview(MouseEvent mouseEvent) {
-        if (editorPanel == null) {
-            return;
-        }
-        Point previewPoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
-        SwingUtilities.convertPointFromScreen(previewPoint, editorPanel);
-        if (!editorPanel.contains(previewPoint)) {
-            model.clearTemporaryCreatePreview();
-            editorPanel.repaint();
-            return;
-        }
-        model.setTemporaryCreatePreview(
-                new Vector2D(previewPoint.x - (CREATE_PREVIEW_WIDTH / 2), previewPoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
-                new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
-        );
-        editorPanel.repaint();
-    }
 
     private void setButtonDefault(UserMode mode) {
         JButton button = buttons.get(mode);
