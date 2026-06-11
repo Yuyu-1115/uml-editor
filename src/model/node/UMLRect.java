@@ -12,7 +12,8 @@ public class UMLRect extends UMLNode {
 
     @Override
     public boolean containsPoint(int x, int y) {
-        return x >= position.x() && x <= position.x() + size.x() && y >= position.y() && y <= position.y() + size.y();
+        return x >= getPosition().x() && x <= getPosition().x() + getSize().x()
+                && y >= getPosition().y() && y <= getPosition().y() + getSize().y();
     }
 
     @Override
@@ -36,6 +37,6 @@ public class UMLRect extends UMLNode {
 
     @Override
     public void move(int deltaX, int deltaY) {
-        this.position = new Vector2D(this.position.x() + deltaX, this.position.y() + deltaY);
+        setPosition(new Vector2D(getPosition().x() + deltaX, getPosition().y() + deltaY));
     }
 }

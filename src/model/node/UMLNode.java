@@ -13,8 +13,8 @@ public abstract class UMLNode {
     private int depth;
     private UMLGroup parent;
     private Color labelColor = Color.WHITE;
-    protected Vector2D position;
-    protected Vector2D size;
+    private Vector2D position;
+    private Vector2D size;
 
     public UMLNode(String name, Vector2D position, Vector2D size) {
         this.id = UUID.randomUUID();

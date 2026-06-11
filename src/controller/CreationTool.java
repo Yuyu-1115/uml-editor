@@ -15,7 +15,7 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.MouseEvent;
 
-public class CreationTool implements AWTEventListener {
+public class CreationTool implements AWTEventListener, CanvasTool {
     private static final int CREATE_PREVIEW_WIDTH = 100;
     private static final int CREATE_PREVIEW_HEIGHT = 100;
 
@@ -100,5 +100,21 @@ public class CreationTool implements AWTEventListener {
                 new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
         );
         model.fireModelChanged();
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
     }
 }

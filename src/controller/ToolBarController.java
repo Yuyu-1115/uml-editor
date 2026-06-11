@@ -14,9 +14,6 @@ import java.util.Map;
 import javax.swing.border.Border;
 
 public class ToolBarController {
-    private static final int CREATE_PREVIEW_WIDTH = 100;
-    private static final int CREATE_PREVIEW_HEIGHT = 100;
-
     private final UMLModel model;
     private final Map<UserMode, JButton> buttons = new EnumMap<>(UserMode.class);
     private final Map<UserMode, Color> defaultTextColors = new EnumMap<>(UserMode.class);
@@ -77,8 +74,6 @@ public class ToolBarController {
     public void setEditorPanel(UMLPanel panel) {
         this.editorPanel = panel;
     }
-
-
 
     private void setButtonDefault(UserMode mode) {
         JButton button = buttons.get(mode);
