@@ -3,8 +3,8 @@ package controller;
 import model.DraftModel;
 import model.SelectionModel;
 import model.UMLModel;
-import model.Vector2D;
-import model.UMLPort;
+import record.Vector2D;
+import record.UMLPort;
 import model.node.UMLNode;
 import view.UMLPanel;
 

@@ -3,8 +3,8 @@ package controller;
 import model.DraftModel;
 import model.SelectionModel;
 import model.UMLModel;
-import model.Vector2D;
-import model.UMLPort;
+import record.Vector2D;
+import record.UMLPort;
 import model.enums.PortType;
 import model.node.UMLGroup;
 import model.node.UMLNode;
@@ -75,8 +75,8 @@ public class SelectTool implements CanvasTool {
             activeResizePort = pressedPort.portType();
             PortType oppositePort = activeResizePort.getOpposite();
             resizeOppositePoint = clickedNode.getPortPosition(oppositePort);
-            resizeInitialPosition = new Vector2D(clickedNode.getPosition().x, clickedNode.getPosition().y);
-            resizeInitialSize = new Vector2D(clickedNode.getSize().x, clickedNode.getSize().y);
+            resizeInitialPosition = new Vector2D(clickedNode.getPosition().x(), clickedNode.getPosition().y());
+            resizeInitialSize = new Vector2D(clickedNode.getSize().x(), clickedNode.getSize().y());
         } else {
             selectDragAction = SelectDragAction.MOVING;
             activeNodeId = clickedNode.getId();
@@ -220,10 +220,10 @@ public class SelectTool implements CanvasTool {
         int bottom = Math.max(y1, y2);
         java.util.List<UMLNode> selectedNodes = new java.util.ArrayList<>();
         for (UMLNode node : model.getNodesForRender()) {
-            int nodeLeft = node.getPosition().x;
-            int nodeTop = node.getPosition().y;
-            int nodeRight = node.getPosition().x + node.getSize().x;
-            int nodeBottom = node.getPosition().y + node.getSize().y;
+            int nodeLeft = node.getPosition().x();
+            int nodeTop = node.getPosition().y();
+            int nodeRight = node.getPosition().x() + node.getSize().x();
+            int nodeBottom = node.getPosition().y() + node.getSize().y();
             if (nodeLeft >= left && nodeTop >= top && nodeRight <= right && nodeBottom <= bottom) {
                 selectedNodes.add(node);
             }

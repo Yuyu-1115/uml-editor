@@ -1,4 +1,4 @@
-package model;
+package record;
 
 import model.enums.PortType;
 

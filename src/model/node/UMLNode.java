@@ -1,6 +1,6 @@
 package model.node;
 
-import model.Vector2D;
+import record.Vector2D;
 import model.enums.PortType;
 
 import java.awt.Color;
@@ -87,12 +87,12 @@ public abstract class UMLNode {
     public abstract List<PortType> getSupportedPorts();
 
     public Vector2D getPortPosition(PortType portType) {
-        int left = position.x;
-        int right = position.x + size.x;
-        int centerX = position.x + (size.x / 2);
-        int top = position.y;
-        int bottom = position.y + size.y;
-        int centerY = position.y + (size.y / 2);
+        int left = position.x();
+        int right = position.x() + size.x();
+        int centerX = position.x() + (size.x() / 2);
+        int top = position.y();
+        int bottom = position.y() + size.y();
+        int centerY = position.y() + (size.y() / 2);
 
         return switch (portType) {
             case TOP_LEFT -> new Vector2D(left, top);
@@ -122,10 +122,10 @@ public abstract class UMLNode {
             return;
         }
 
-        int initialLeft = initialPosition.x;
-        int initialTop = initialPosition.y;
-        int initialRight = initialPosition.x + initialSize.x;
-        int initialBottom = initialPosition.y + initialSize.y;
+        int initialLeft = initialPosition.x();
+        int initialTop = initialPosition.y();
+        int initialRight = initialPosition.x() + initialSize.x();
+        int initialBottom = initialPosition.y() + initialSize.y();
 
         int left = initialLeft;
         int right = initialRight;
@@ -138,12 +138,12 @@ public abstract class UMLNode {
                 || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
 
         if (horizontalResize) {
-            left = Math.min(dragPoint.x, oppositePortPoint.x);
-            right = Math.max(dragPoint.x, oppositePortPoint.x);
+            left = Math.min(dragPoint.x(), oppositePortPoint.x());
+            right = Math.max(dragPoint.x(), oppositePortPoint.x());
         }
         if (verticalResize) {
-            top = Math.min(dragPoint.y, oppositePortPoint.y);
-            bottom = Math.max(dragPoint.y, oppositePortPoint.y);
+            top = Math.min(dragPoint.y(), oppositePortPoint.y());
+            bottom = Math.max(dragPoint.y(), oppositePortPoint.y());
         }
 
         int minLength = Math.max(40, minSize);

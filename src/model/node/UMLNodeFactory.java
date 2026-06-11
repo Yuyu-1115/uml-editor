@@ -1,7 +1,7 @@
 package model.node;
 
 import model.enums.UserMode;
-import model.Vector2D;
+import record.Vector2D;
 
 public class UMLNodeFactory {
     public static UMLNode createNode(UserMode mode, Vector2D position, Vector2D size) {

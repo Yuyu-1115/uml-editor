@@ -1,5 +1,8 @@
 package model;
 
+import record.UMLPort;
+import record.Vector2D;
+
 public class DraftModel {
     private UMLPort linkStartPort;
     private Vector2D linkPreviewPoint;

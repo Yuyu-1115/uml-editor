@@ -3,6 +3,9 @@ package view;
 import model.link.UMLLink;
 import model.UMLModel;
 import model.node.UMLNode;
+import view.render.UMLDraftRenderer;
+import view.render.UMLLinkRenderer;
+import view.render.UMLNodeRenderer;
 
 import javax.swing.JPanel;
 import java.awt.Graphics;

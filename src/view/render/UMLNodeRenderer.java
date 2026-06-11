@@ -1,9 +1,9 @@
-package view;
+package view.render;
 
 import model.SelectionModel;
 import model.UMLModel;
 import model.node.UMLNodeVisitor;
-import model.Vector2D;
+import record.Vector2D;
 import model.enums.PortType;
 import model.node.UMLGroup;
 import model.node.UMLNode;
@@ -34,9 +34,9 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
     @Override
     public void visit(UMLRect rect) {
         g2d.setColor(rect.getLabelColor());
-        g2d.fillRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
+        g2d.fillRect(rect.getPosition().x(), rect.getPosition().y(), rect.getSize().x(), rect.getSize().y());
         g2d.setColor(Color.BLACK);
-        g2d.drawRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
+        g2d.drawRect(rect.getPosition().x(), rect.getPosition().y(), rect.getSize().x(), rect.getSize().y());
 
         drawName(rect);
         if (selectionModel.isSelected(rect) || selectionModel.isHovered(rect)) {
@@ -47,9 +47,9 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
     @Override
     public void visit(UMLOval oval) {
         g2d.setColor(oval.getLabelColor());
-        g2d.fillOval(oval.getPosition().x, oval.getPosition().y, oval.getSize().x, oval.getSize().y);
+        g2d.fillOval(oval.getPosition().x(), oval.getPosition().y(), oval.getSize().x(), oval.getSize().y());
         g2d.setColor(Color.BLACK);
-        g2d.drawOval(oval.getPosition().x, oval.getPosition().y, oval.getSize().x, oval.getSize().y);
+        g2d.drawOval(oval.getPosition().x(), oval.getPosition().y(), oval.getSize().x(), oval.getSize().y());
 
         drawName(oval);
         if (selectionModel.isSelected(oval) || selectionModel.isHovered(oval)) {
@@ -77,8 +77,8 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         FontMetrics metrics = g2d.getFontMetrics();
         int textWidth = metrics.stringWidth(name);
         int textHeight = metrics.getAscent();
-        int textX = node.getPosition().x + (node.getSize().x - textWidth) / 2;
-        int textY = node.getPosition().y + (node.getSize().y + textHeight) / 2 - 2;
+        int textX = node.getPosition().x() + (node.getSize().x() - textWidth) / 2;
+        int textY = node.getPosition().y() + (node.getSize().y() + textHeight) / 2 - 2;
         g2d.setColor(Color.BLACK);
         g2d.drawString(name, textX, textY);
     }
@@ -87,7 +87,7 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         g2d.setColor(Color.BLACK);
         for (PortType portType : node.getSupportedPorts()) {
             Vector2D port = node.getPortPosition(portType);
-            g2d.fillRect(port.x - 6, port.y - 6, 12, 12);
+            g2d.fillRect(port.x() - 6, port.y() - 6, 12, 12);
         }
     }
 
@@ -95,7 +95,7 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         Stroke oldStroke = g2d.getStroke();
         g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
         g2d.setColor(Color.BLACK);
-        g2d.drawRect(groupNode.getPosition().x, groupNode.getPosition().y, groupNode.getSize().x, groupNode.getSize().y);
+        g2d.drawRect(groupNode.getPosition().x(), groupNode.getPosition().y(), groupNode.getSize().x(), groupNode.getSize().y());
         g2d.setStroke(oldStroke);
     }
 }

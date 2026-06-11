@@ -1,6 +1,6 @@
 package model.link;
 
-import model.UMLPort;
+import record.UMLPort;
 import model.enums.UserMode;
 
 public class UMLLinkFactory {

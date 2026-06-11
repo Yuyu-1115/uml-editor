@@ -99,7 +99,7 @@ public class UMLUiBuilder {
         if (selectedNodes.size() != 1) {
             return;
         }
-        UMLNode selectedNode = selectedNodes.get(0);
+        UMLNode selectedNode = selectedNodes.getFirst();
         if (selectedNode instanceof UMLGroup) {
             return;
         }

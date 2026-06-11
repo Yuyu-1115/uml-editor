@@ -1,4 +1,4 @@
-package view;
+package view.render;
 
 import model.link.AssociationLink;
 import model.link.CompositionLink;
@@ -7,7 +7,7 @@ import model.link.UMLLink;
 import model.link.UMLLinkVisitor;
 import model.UMLModel;
 import model.node.UMLNode;
-import model.Vector2D;
+import record.Vector2D;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -17,7 +17,7 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
     private Graphics2D g2d;
     private final UMLModel model;
 
-    private static record ArrowCoordinates(
+    private record ArrowCoordinates(
         int tipX, int tipY,
         int baseX, int baseY,
         int leftX, int leftY,
@@ -75,7 +75,7 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
     private void drawAssociationArrow(Vector2D start, Vector2D end) {
         g2d.setColor(Color.BLACK);
         ArrowCoordinates coords = calculateArrowCoordinates(start, end, 14, 7);
-        g2d.drawLine(start.x, start.y, coords.tipX, coords.tipY);
+        g2d.drawLine(start.x(), start.y(), coords.tipX, coords.tipY);
         g2d.drawLine(coords.tipX, coords.tipY, coords.leftX, coords.leftY);
         g2d.drawLine(coords.tipX, coords.tipY, coords.rightX, coords.rightY);
     }
@@ -89,7 +89,7 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
         triangle.lineTo(coords.rightX, coords.rightY);
         triangle.closePath();
 
-        g2d.drawLine(start.x, start.y, coords.baseX, coords.baseY);
+        g2d.drawLine(start.x(), start.y(), coords.baseX, coords.baseY);
         g2d.setColor(Color.WHITE);
         g2d.fill(triangle);
         g2d.setColor(Color.BLACK);
@@ -106,7 +106,7 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
         diamond.lineTo(coords.rightX, coords.rightY);
         diamond.closePath();
 
-        g2d.drawLine(start.x, start.y, coords.backX, coords.backY);
+        g2d.drawLine(start.x(), start.y(), coords.backX, coords.backY);
         g2d.setColor(Color.WHITE);
         g2d.fill(diamond);
         g2d.setColor(Color.BLACK);
@@ -114,8 +114,8 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
     }
 
     private ArrowCoordinates calculateArrowCoordinates(Vector2D start, Vector2D end, int length, int width) {
-        int dx = end.x - start.x;
-        int dy = end.y - start.y;
+        int dx = end.x() - start.x();
+        int dy = end.y() - start.y();
         double magnitude = Math.hypot(dx, dy);
 
         double ux = 1.0;
@@ -128,8 +128,8 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
         double px = -uy;
         double py = ux;
 
-        int tipX = end.x;
-        int tipY = end.y;
+        int tipX = end.x();
+        int tipY = end.y();
 
         int baseX = (int) Math.round(tipX - ux * length);
         int baseY = (int) Math.round(tipY - uy * length);

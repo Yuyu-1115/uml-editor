@@ -2,7 +2,7 @@ package controller;
 
 import model.DraftModel;
 import model.UMLModel;
-import model.Vector2D;
+import record.Vector2D;
 import model.enums.UserMode;
 import model.node.UMLNode;
 import model.node.UMLNodeFactory;

@@ -1,9 +1,9 @@
-package view;
+package view.render;
 
 import model.DraftModel;
 import model.UMLModel;
-import model.UMLPort;
-import model.Vector2D;
+import record.UMLPort;
+import record.Vector2D;
 import model.enums.UserMode;
 import model.node.UMLNode;
 
@@ -48,9 +48,9 @@ public class UMLDraftRenderer {
         g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
         g2d.setColor(new Color(80, 80, 80, 180));
         if (model.getTemporaryCreateMode() == UserMode.OVAL) {
-            g2d.drawOval(position.x, position.y, size.x, size.y);
+            g2d.drawOval(position.x(), position.y(), size.x(), size.y());
         } else {
-            g2d.drawRect(position.x, position.y, size.x, size.y);
+            g2d.drawRect(position.x(), position.y(), size.x(), size.y());
         }
         g2d.setStroke(oldStroke);
     }
@@ -61,10 +61,10 @@ public class UMLDraftRenderer {
         if (start == null || end == null) {
             return;
         }
-        int left = Math.min(start.x, end.x);
-        int top = Math.min(start.y, end.y);
-        int width = Math.abs(end.x - start.x);
-        int height = Math.abs(end.y - start.y);
+        int left = Math.min(start.x(), end.x());
+        int top = Math.min(start.y(), end.y());
+        int width = Math.abs(end.x() - start.x());
+        int height = Math.abs(end.y() - start.y());
         Stroke oldStroke = g2d.getStroke();
         g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
         g2d.setColor(new Color(60, 110, 200, 180));
@@ -84,7 +84,7 @@ public class UMLDraftRenderer {
         Vector2D endPosition = draftModel.getLinkPreviewPoint();
         if (startPosition != null && endPosition != null) {
             g2d.setColor(Color.GRAY);
-            g2d.drawLine(startPosition.x, startPosition.y, endPosition.x, endPosition.y);
+            g2d.drawLine(startPosition.x(), startPosition.y(), endPosition.x(), endPosition.y());
         }
     }
 }

@@ -6,8 +6,8 @@ import model.link.UMLLink;
 import model.link.UMLLinkFactory;
 import model.node.UMLGroup;
 import model.node.UMLNode;
-import model.node.UMLOval;
-import model.node.UMLRect;
+import record.UMLPort;
+import record.Vector2D;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -148,8 +148,8 @@ public class UMLModel {
             UMLNode node = nodes.get(index);
             for (PortType portType : node.getSupportedPorts()) {
                 Vector2D portPosition = node.getPortPosition(portType);
-                int dx = x - portPosition.x;
-                int dy = y - portPosition.y;
+                int dx = x - portPosition.x();
+                int dy = y - portPosition.y();
                 if (dx * dx + dy * dy <= PORT_HIT_RADIUS * PORT_HIT_RADIUS) {
                     return new UMLPort(node.getId(), portType);
                 }
@@ -199,10 +199,10 @@ public class UMLModel {
         int maxX = Integer.MIN_VALUE;
         int maxY = Integer.MIN_VALUE;
         for (UMLNode node : topLevelSelectedNodes) {
-            minX = Math.min(minX, node.getPosition().x);
-            minY = Math.min(minY, node.getPosition().y);
-            maxX = Math.max(maxX, node.getPosition().x + node.getSize().x);
-            maxY = Math.max(maxY, node.getPosition().y + node.getSize().y);
+            minX = Math.min(minX, node.getPosition().x());
+            minY = Math.min(minY, node.getPosition().y());
+            maxX = Math.max(maxX, node.getPosition().x() + node.getSize().x());
+            maxY = Math.max(maxY, node.getPosition().y() + node.getSize().y());
         }
 
         return new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));

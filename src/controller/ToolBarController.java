@@ -1,17 +1,12 @@
 package controller;
 
 import model.UMLModel;
-import model.Vector2D;
 import model.enums.UserMode;
 import view.UMLPanel;
 
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
-import java.awt.AWTEvent;
-import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.Color;
-import java.awt.event.AWTEventListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EnumMap;
