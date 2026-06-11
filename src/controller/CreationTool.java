@@ -3,6 +3,8 @@ package controller;
 import model.UMLModel;
 import model.Vector2D;
 import model.enums.UserMode;
+import model.node.UMLNode;
+import model.node.UMLNodeFactory;
 import view.UMLPanel;
 
 import javax.swing.SwingUtilities;
@@ -64,10 +66,12 @@ public class CreationTool implements AWTEventListener {
             Point releasePoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
             SwingUtilities.convertPointFromScreen(releasePoint, panel);
             if (panel.contains(releasePoint)) {
-                model.newShape(
-                        new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
-                        new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
-                );
+                Vector2D position = new Vector2D(releasePoint.x - (CREATE_PREVIEW_WIDTH / 2), releasePoint.y - (CREATE_PREVIEW_HEIGHT / 2));
+                Vector2D size = new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT);
+                UMLNode shape = UMLNodeFactory.createNode(mode, position, size);
+                if (shape != null) {
+                    model.addNode(shape);
+                }
                 panel.repaint();
             }
         }

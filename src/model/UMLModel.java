@@ -2,10 +2,8 @@ package model;
 
 import model.enums.PortType;
 import model.enums.UserMode;
-import model.link.AssociationLink;
-import model.link.CompositionLink;
-import model.link.GeneralizationLink;
 import model.link.UMLLink;
+import model.link.UMLLinkFactory;
 import model.node.UMLGroup;
 import model.node.UMLNode;
 import model.node.UMLOval;
@@ -14,9 +12,7 @@ import model.node.UMLRect;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class UMLModel {
@@ -29,29 +25,14 @@ public class UMLModel {
     private UserMode temporaryCreateMode;
     private final HashMap<UUID, UMLNode> objectRegistry = new HashMap<>();
     private final List<UMLLink> links = new ArrayList<>();
-    private final Set<UUID> selectedNodeIds = new LinkedHashSet<>();
-    private UUID hoveredNodeId;
-    private UMLPort linkStartPort;
-    private Vector2D linkPreviewPoint;
-    private Vector2D temporaryCreatePreviewPosition;
-    private Vector2D temporaryCreatePreviewSize;
-    private Vector2D selectionAreaStart;
-    private Vector2D selectionAreaEnd;
+    private final SelectionModel selectionModel = new SelectionModel();
+    private final DraftModel draftModel = new DraftModel();
 
-    public void newShape(Vector2D position, Vector2D size) {
-        UMLNode shape;
-        switch (userMode) {
-            case RECT:
-                shape = new UMLRect("", position, size);
-                break;
-            case OVAL:
-                shape = new UMLOval("", position, size);
-                break;
-            default:
-                return;
+    public void addNode(UMLNode shape) {
+        if (shape != null) {
+            objectRegistry.put(shape.getId(), shape);
+            bringToFront(shape);
         }
-        objectRegistry.put(shape.getId(), shape);
-        bringToFront(shape);
     }
 
     public UserMode getUserMode() {
@@ -83,10 +64,6 @@ public class UMLModel {
 
     public UserMode getTemporaryCreateMode() {
         return temporaryCreateMode;
-    }
-
-    public UserMode getPreviousUserModeForTemporaryCreate() {
-        return previousUserModeForTemporaryCreate;
     }
 
     public UserMode finishTemporaryCreateMode() {
@@ -174,71 +151,37 @@ public class UMLModel {
     }
 
     public void setSelectedNode(UMLNode node) {
-        selectedNodeIds.clear();
-        if (node != null) {
-            selectedNodeIds.add(node.getId());
-        }
+        selectionModel.setSelectedNode(node);
     }
 
     public void clearSelection() {
-        selectedNodeIds.clear();
+        selectionModel.clearSelection();
     }
 
     public void setSelectedNodes(List<UMLNode> nodes) {
-        selectedNodeIds.clear();
-        if (nodes == null) {
-            return;
-        }
-        for (UMLNode node : nodes) {
-            if (node != null) {
-                selectedNodeIds.add(node.getId());
-            }
-        }
+        selectionModel.setSelectedNodes(nodes);
     }
 
     public List<UMLNode> getSelectedNodes() {
-        List<UMLNode> selectedNodes = new ArrayList<>();
-        for (UUID selectedNodeId : selectedNodeIds) {
-            UMLNode selectedNode = objectRegistry.get(selectedNodeId);
-            if (selectedNode != null) {
-                selectedNodes.add(selectedNode);
-            }
-        }
-        return selectedNodes;
+        return selectionModel.getSelectedNodes(objectRegistry);
     }
 
     public boolean isSelected(UMLNode node) {
-        return node != null && selectedNodeIds.contains(node.getId());
+        return selectionModel.isSelected(node);
     }
 
-    public void selectNodesFullyInsideArea(int x1, int y1, int x2, int y2) {
-        int left = Math.min(x1, x2);
-        int right = Math.max(x1, x2);
-        int top = Math.min(y1, y2);
-        int bottom = Math.max(y1, y2);
-        List<UMLNode> selectedNodes = new ArrayList<>();
-        for (UMLNode node : getNodesForRender()) {
-            int nodeLeft = node.getPosition().x;
-            int nodeTop = node.getPosition().y;
-            int nodeRight = node.getPosition().x + node.getSize().x;
-            int nodeBottom = node.getPosition().y + node.getSize().y;
-            if (nodeLeft >= left && nodeTop >= top && nodeRight <= right && nodeBottom <= bottom) {
-                selectedNodes.add(node);
-            }
-        }
-        setSelectedNodes(selectedNodes);
-    }
+
 
     public void setHoveredNode(UMLNode node) {
-        hoveredNodeId = node == null ? null : node.getId();
+        selectionModel.setHoveredNode(node);
     }
 
     public void clearHover() {
-        hoveredNodeId = null;
+        selectionModel.clearHover();
     }
 
     public boolean isHovered(UMLNode node) {
-        return node != null && node.getId().equals(hoveredNodeId);
+        return selectionModel.isHovered(node);
     }
 
     public UMLNode getNodeById(UUID id) {
@@ -246,41 +189,31 @@ public class UMLModel {
     }
 
     public void startLinkDraft(UMLPort startPort) {
-        linkStartPort = startPort;
-        linkPreviewPoint = getPortPosition(startPort);
+        draftModel.startLinkDraft(startPort, getPortPosition(startPort));
     }
 
     public UMLPort getLinkStartPort() {
-        return linkStartPort;
+        return draftModel.getLinkStartPort();
     }
 
     public void updateLinkDraftPreview(Vector2D point) {
-        linkPreviewPoint = point;
+        draftModel.updateLinkDraftPreview(point);
     }
 
     public Vector2D getLinkPreviewPoint() {
-        return linkPreviewPoint;
+        return draftModel.getLinkPreviewPoint();
     }
 
     public void clearLinkDraft() {
-        linkStartPort = null;
-        linkPreviewPoint = null;
+        draftModel.clearLinkDraft();
     }
 
     public boolean hasLinkDraft() {
-        return linkStartPort != null;
+        return draftModel.hasLinkDraft();
     }
 
     public void createLink(UserMode mode, UMLPort start, UMLPort end) {
-        if (start == null || end == null || start.ownerId().equals(end.ownerId())) {
-            return;
-        }
-        UMLLink link = switch (mode) {
-            case ASSOCIATION -> new AssociationLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
-            case GENERALIZATION -> new GeneralizationLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
-            case COMPOSITION -> new CompositionLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
-            default -> null;
-        };
+        UMLLink link = UMLLinkFactory.createLink(mode, start, end);
         if (link != null) {
             links.add(link);
         }
@@ -297,41 +230,7 @@ public class UMLModel {
         return node.getPortPosition(UMLPort.portType());
     }
 
-    public void moveNode(UMLNode node, int deltaX, int deltaY) {
-        if (node == null || (deltaX == 0 && deltaY == 0)) {
-            return;
-        }
-        node.move(deltaX, deltaY);
-    }
 
-    public void moveSelectedNodes(int deltaX, int deltaY) {
-        if (deltaX == 0 && deltaY == 0) {
-            return;
-        }
-
-        List<UMLNode> selectedTopLevelNodes = new ArrayList<>();
-        for (UMLNode node : getSelectedNodes()) {
-            if (node == null) {
-                continue;
-            }
-            UMLNode ancestor = node.getParent();
-            boolean ancestorSelected = false;
-            while (ancestor != null) {
-                if (isSelected(ancestor)) {
-                    ancestorSelected = true;
-                    break;
-                }
-                ancestor = ancestor.getParent();
-            }
-            if (!ancestorSelected) {
-                selectedTopLevelNodes.add(node);
-            }
-        }
-
-        for (UMLNode node : selectedTopLevelNodes) {
-            node.move(deltaX, deltaY);
-        }
-    }
 
     public void resizeNodeByPort(
             UMLNode node,
@@ -469,46 +368,42 @@ public class UMLModel {
     }
 
     public void setTemporaryCreatePreview(Vector2D position, Vector2D size) {
-        this.temporaryCreatePreviewPosition = position;
-        this.temporaryCreatePreviewSize = size;
+        draftModel.setTemporaryCreatePreview(position, size);
     }
 
     public void clearTemporaryCreatePreview() {
-        temporaryCreatePreviewPosition = null;
-        temporaryCreatePreviewSize = null;
+        draftModel.clearTemporaryCreatePreview();
     }
 
     public boolean hasTemporaryCreatePreview() {
-        return temporaryCreatePreviewPosition != null && temporaryCreatePreviewSize != null;
+        return draftModel.hasTemporaryCreatePreview();
     }
 
     public Vector2D getTemporaryCreatePreviewPosition() {
-        return temporaryCreatePreviewPosition;
+        return draftModel.getTemporaryCreatePreviewPosition();
     }
 
     public Vector2D getTemporaryCreatePreviewSize() {
-        return temporaryCreatePreviewSize;
+        return draftModel.getTemporaryCreatePreviewSize();
     }
 
     public void setSelectionAreaDraft(Vector2D start, Vector2D end) {
-        selectionAreaStart = start;
-        selectionAreaEnd = end;
+        draftModel.setSelectionAreaDraft(start, end);
     }
 
     public void clearSelectionAreaDraft() {
-        selectionAreaStart = null;
-        selectionAreaEnd = null;
+        draftModel.clearSelectionAreaDraft();
     }
 
     public boolean hasSelectionAreaDraft() {
-        return selectionAreaStart != null && selectionAreaEnd != null;
+        return draftModel.hasSelectionAreaDraft();
     }
 
     public Vector2D getSelectionAreaStart() {
-        return selectionAreaStart;
+        return draftModel.getSelectionAreaStart();
     }
 
     public Vector2D getSelectionAreaEnd() {
-        return selectionAreaEnd;
+        return draftModel.getSelectionAreaEnd();
     }
 }

@@ -4,6 +4,7 @@ import model.UMLModel;
 import model.Vector2D;
 import model.UMLPort;
 import model.enums.PortType;
+import model.node.UMLGroup;
 import model.node.UMLNode;
 import view.UMLPanel;
 
@@ -112,9 +113,9 @@ public class SelectTool implements CanvasTool {
             int deltaX = point.x - lastDragPoint.x;
             int deltaY = point.y - lastDragPoint.y;
             if (model.isSelected(activeNode) && model.getSelectedNodes().size() > 1) {
-                model.moveSelectedNodes(deltaX, deltaY);
+                moveSelectedNodes(deltaX, deltaY);
             } else {
-                model.moveNode(activeNode, deltaX, deltaY);
+                activeNode.move(deltaX, deltaY);
             }
             lastDragPoint = point;
             umlPanel.repaint();
@@ -145,7 +146,7 @@ public class SelectTool implements CanvasTool {
             boolean shouldRepaint = selectDragAction != SelectDragAction.AREA_SELECT;
             if (selectDragAction == SelectDragAction.AREA_SELECT && areaSelectStartPoint != null && areaSelectActivated) {
                 Point point = e.getPoint();
-                model.selectNodesFullyInsideArea(areaSelectStartPoint.x, areaSelectStartPoint.y, point.x, point.y);
+                selectNodesFullyInsideArea(areaSelectStartPoint.x, areaSelectStartPoint.y, point.x, point.y);
                 shouldRepaint = true;
             }
             resetSelectDragState();
@@ -180,5 +181,48 @@ public class SelectTool implements CanvasTool {
         areaSelectStartPoint = null;
         areaSelectActivated = false;
         model.clearSelectionAreaDraft();
+    }
+
+    private void moveSelectedNodes(int deltaX, int deltaY) {
+        java.util.List<UMLNode> selectedTopLevelNodes = new java.util.ArrayList<>();
+        for (UMLNode node : model.getSelectedNodes()) {
+            if (node == null) {
+                continue;
+            }
+            UMLGroup ancestor = node.getParent();
+            boolean ancestorSelected = false;
+            while (ancestor != null) {
+                if (model.isSelected(ancestor)) {
+                    ancestorSelected = true;
+                    break;
+                }
+                ancestor = ancestor.getParent();
+            }
+            if (!ancestorSelected) {
+                selectedTopLevelNodes.add(node);
+            }
+        }
+
+        for (UMLNode node : selectedTopLevelNodes) {
+            node.move(deltaX, deltaY);
+        }
+    }
+
+    private void selectNodesFullyInsideArea(int x1, int y1, int x2, int y2) {
+        int left = Math.min(x1, x2);
+        int right = Math.max(x1, x2);
+        int top = Math.min(y1, y2);
+        int bottom = Math.max(y1, y2);
+        java.util.List<UMLNode> selectedNodes = new java.util.ArrayList<>();
+        for (UMLNode node : model.getNodesForRender()) {
+            int nodeLeft = node.getPosition().x;
+            int nodeTop = node.getPosition().y;
+            int nodeRight = node.getPosition().x + node.getSize().x;
+            int nodeBottom = node.getPosition().y + node.getSize().y;
+            if (nodeLeft >= left && nodeTop >= top && nodeRight <= right && nodeBottom <= bottom) {
+                selectedNodes.add(node);
+            }
+        }
+        model.setSelectedNodes(selectedNodes);
     }
 }
