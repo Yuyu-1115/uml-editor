@@ -6,7 +6,6 @@ import model.UMLModel;
 import record.Vector2D;
 import record.UMLPort;
 import model.node.UMLNode;
-import view.UMLPanel;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -15,13 +14,11 @@ public class LinkTool implements CanvasTool {
     private final UMLModel model;
     private final SelectionModel selectionModel;
     private final DraftModel draftModel;
-    private final UMLPanel umlPanel;
 
-    public LinkTool(UMLModel model, UMLPanel umlPanel) {
+    public LinkTool(UMLModel model) {
         this.model = model;
         this.selectionModel = model.getSelectionModel();
         this.draftModel = model.getDraftModel();
-        this.umlPanel = umlPanel;
     }
 
     @Override
@@ -38,7 +35,7 @@ public class LinkTool implements CanvasTool {
                 draftModel.startLinkDraft(startPort, startNode.getPortPosition(startPort.portType()));
                 selectionModel.setHoveredNode(startNode);
                 draftModel.updateLinkDraftPreview(new Vector2D(point.x, point.y));
-                umlPanel.repaint();
+                model.fireModelChanged();
             }
         }
     }
@@ -50,7 +47,7 @@ public class LinkTool implements CanvasTool {
             UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
             selectionModel.setHoveredNode(hoveredNode);
             draftModel.updateLinkDraftPreview(new Vector2D(point.x, point.y));
-            umlPanel.repaint();
+            model.fireModelChanged();
         }
     }
 
@@ -67,7 +64,7 @@ public class LinkTool implements CanvasTool {
             model.createLink(model.getUserMode(), startPort, endPort);
             draftModel.clearLinkDraft();
             selectionModel.clearHover();
-            umlPanel.repaint();
+            model.fireModelChanged();
         }
     }
 
@@ -75,13 +72,13 @@ public class LinkTool implements CanvasTool {
     public void mouseMoved(MouseEvent e) {
         if (model.isTemporaryCreateModeActive()) {
             selectionModel.clearHover();
-            umlPanel.repaint();
+            model.fireModelChanged();
             return;
         }
 
         Point point = e.getPoint();
         UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
         selectionModel.setHoveredNode(hoveredNode);
-        umlPanel.repaint();
+        model.fireModelChanged();
     }
 }

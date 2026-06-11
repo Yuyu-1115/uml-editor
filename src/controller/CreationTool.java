@@ -75,7 +75,6 @@ public class CreationTool implements AWTEventListener {
                 if (shape != null) {
                     model.addNode(shape);
                 }
-                panel.repaint();
             }
         }
 
@@ -93,13 +92,13 @@ public class CreationTool implements AWTEventListener {
         SwingUtilities.convertPointFromScreen(previewPoint, panel);
         if (!panel.contains(previewPoint)) {
             draftModel.clearTemporaryCreatePreview();
-            panel.repaint();
+            model.fireModelChanged();
             return;
         }
         draftModel.setTemporaryCreatePreview(
                 new Vector2D(previewPoint.x - (CREATE_PREVIEW_WIDTH / 2), previewPoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
                 new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
         );
-        panel.repaint();
+        model.fireModelChanged();
     }
 }

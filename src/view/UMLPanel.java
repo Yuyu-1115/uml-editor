@@ -3,9 +3,9 @@ package view;
 import model.link.UMLLink;
 import model.UMLModel;
 import model.node.UMLNode;
-import view.render.UMLDraftRenderer;
 import view.render.UMLLinkRenderer;
 import view.render.UMLNodeRenderer;
+import view.render.UMLDraftRenderer;
 
 import javax.swing.JPanel;
 import java.awt.Graphics;
@@ -23,6 +23,8 @@ public class UMLPanel extends JPanel {
         this.linkRenderer = new UMLLinkRenderer(umlModel);
         this.nodeRenderer = new UMLNodeRenderer(umlModel);
         this.draftRenderer = new UMLDraftRenderer(umlModel);
+
+        umlModel.addModelListener(this::repaint);
     }
 
     @Override

@@ -74,19 +74,11 @@ public class UMLUiBuilder {
         menuBar.add(new JMenu("File"));
         JMenu editMenu = new JMenu("Edit");
         JMenuItem groupItem = new JMenuItem("Group");
-        groupItem.addActionListener(e -> {
-            if (umlModel.groupSelectedNodes() && canvasPanel != null) {
-                canvasPanel.repaint();
-            }
-        });
+        groupItem.addActionListener(e -> umlModel.groupSelectedNodes());
         JMenuItem labelItem = new JMenuItem("Label");
         labelItem.addActionListener(e -> showLabelStyleDialog());
         JMenuItem ungroupItem = new JMenuItem("Ungroup");
-        ungroupItem.addActionListener(e -> {
-            if (umlModel.ungroupSelectedNode() && canvasPanel != null) {
-                canvasPanel.repaint();
-            }
-        });
+        ungroupItem.addActionListener(e -> umlModel.ungroupSelectedNode());
         editMenu.add(labelItem);
         editMenu.add(groupItem);
         editMenu.add(ungroupItem);
@@ -127,9 +119,7 @@ public class UMLUiBuilder {
         selectedNode.setName(nameField.getText());
         String selectedColorName = (String) colorDropdown.getSelectedItem();
         selectedNode.setLabelColor(COLOR_NAME_MAP.getOrDefault(selectedColorName, Color.WHITE));
-        if (canvasPanel != null) {
-            canvasPanel.repaint();
-        }
+        umlModel.fireModelChanged();
     }
 
     private static String toColorName(Color color) {

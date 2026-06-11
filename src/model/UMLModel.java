@@ -27,6 +27,7 @@ public class UMLModel {
     private final List<UMLLink> links = new ArrayList<>();
     private final SelectionModel selectionModel = new SelectionModel();
     private final DraftModel draftModel = new DraftModel();
+    private final List<UMLModelListener> listeners = new ArrayList<>();
 
     public SelectionModel getSelectionModel() {
         return selectionModel;
@@ -36,10 +37,27 @@ public class UMLModel {
         return draftModel;
     }
 
+    public void addModelListener(UMLModelListener listener) {
+        if (listener != null) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removeModelListener(UMLModelListener listener) {
+        listeners.remove(listener);
+    }
+
+    public void fireModelChanged() {
+        for (UMLModelListener listener : listeners) {
+            listener.onModelChanged();
+        }
+    }
+
     public void addNode(UMLNode shape) {
         if (shape != null) {
             objectRegistry.put(shape.getId(), shape);
             bringToFront(shape);
+            fireModelChanged();
         }
     }
 
@@ -53,6 +71,7 @@ public class UMLModel {
         draftModel.clearLinkDraft();
         draftModel.clearTemporaryCreatePreview();
         draftModel.clearSelectionAreaDraft();
+        fireModelChanged();
     }
 
     public boolean startTemporaryCreateMode(UserMode mode) {
@@ -63,6 +82,7 @@ public class UMLModel {
         temporaryCreateMode = mode;
         userMode = mode;
         draftModel.clearTemporaryCreatePreview();
+        fireModelChanged();
         return true;
     }
 
@@ -83,6 +103,7 @@ public class UMLModel {
         previousUserModeForTemporaryCreate = null;
         userMode = restoredMode;
         draftModel.clearTemporaryCreatePreview();
+        fireModelChanged();
         return restoredMode;
     }
 
@@ -113,6 +134,7 @@ public class UMLModel {
         depthScope.remove(node);
         depthScope.addFirst(node);
         reassignDepths(depthScope);
+        fireModelChanged();
     }
 
     private List<UMLNode> getDepthScope(UMLNode node) {
@@ -166,6 +188,7 @@ public class UMLModel {
         UMLLink link = UMLLinkFactory.createLink(mode, start, end);
         if (link != null) {
             links.add(link);
+            fireModelChanged();
         }
     }
 
@@ -190,6 +213,7 @@ public class UMLModel {
         }
         bringToFront(group);
         selectionModel.setSelectedNode(group);
+        fireModelChanged();
         return true;
     }
 
@@ -225,6 +249,7 @@ public class UMLModel {
         }
         objectRegistry.remove(group.getId());
         selectionModel.setSelectedNodes(children);
+        fireModelChanged();
         return true;
     }
 

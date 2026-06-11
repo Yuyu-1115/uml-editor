@@ -21,15 +21,15 @@ public class UMLController extends MouseAdapter {
         this.umlPanel = umlPanel;
 
         SelectionModel selectionModel = model.getSelectionModel();
-        CanvasTool selectTool = new SelectTool(model, umlPanel);
-        CanvasTool linkTool = new LinkTool(model, umlPanel);
+        CanvasTool selectTool = new SelectTool(model);
+        CanvasTool linkTool = new LinkTool(model);
         noOpTool = new CanvasTool() {
             @Override public void mousePressed(MouseEvent e) {}
             @Override public void mouseDragged(MouseEvent e) {}
             @Override public void mouseReleased(MouseEvent e) {}
             @Override public void mouseMoved(MouseEvent e) {
                 selectionModel.clearHover();
-                umlPanel.repaint();
+                model.fireModelChanged();
             }
         };
 
