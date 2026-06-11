@@ -1,5 +1,6 @@
 package controller;
 
+import model.DraftModel;
 import model.UMLModel;
 import model.Vector2D;
 import model.enums.UserMode;
@@ -19,12 +20,14 @@ public class CreationTool implements AWTEventListener {
     private static final int CREATE_PREVIEW_HEIGHT = 100;
 
     private final UMLModel model;
+    private final DraftModel draftModel;
     private final UMLPanel panel;
     private final UserMode mode;
     private final Runnable onFinished;
 
     public CreationTool(UMLModel model, UMLPanel panel, UserMode mode, Runnable onFinished) {
         this.model = model;
+        this.draftModel = model.getDraftModel();
         this.panel = panel;
         this.mode = mode;
         this.onFinished = onFinished;
@@ -89,11 +92,11 @@ public class CreationTool implements AWTEventListener {
         Point previewPoint = new Point(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
         SwingUtilities.convertPointFromScreen(previewPoint, panel);
         if (!panel.contains(previewPoint)) {
-            model.clearTemporaryCreatePreview();
+            draftModel.clearTemporaryCreatePreview();
             panel.repaint();
             return;
         }
-        model.setTemporaryCreatePreview(
+        draftModel.setTemporaryCreatePreview(
                 new Vector2D(previewPoint.x - (CREATE_PREVIEW_WIDTH / 2), previewPoint.y - (CREATE_PREVIEW_HEIGHT / 2)),
                 new Vector2D(CREATE_PREVIEW_WIDTH, CREATE_PREVIEW_HEIGHT)
         );

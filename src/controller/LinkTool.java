@@ -1,5 +1,7 @@
 package controller;
 
+import model.DraftModel;
+import model.SelectionModel;
 import model.UMLModel;
 import model.Vector2D;
 import model.UMLPort;
@@ -11,10 +13,14 @@ import java.awt.event.MouseEvent;
 
 public class LinkTool implements CanvasTool {
     private final UMLModel model;
+    private final SelectionModel selectionModel;
+    private final DraftModel draftModel;
     private final UMLPanel umlPanel;
 
     public LinkTool(UMLModel model, UMLPanel umlPanel) {
         this.model = model;
+        this.selectionModel = model.getSelectionModel();
+        this.draftModel = model.getDraftModel();
         this.umlPanel = umlPanel;
     }
 
@@ -27,20 +33,23 @@ public class LinkTool implements CanvasTool {
         Point point = e.getPoint();
         UMLPort startPort = model.findTopPortAt(point.x, point.y);
         if (startPort != null) {
-            model.startLinkDraft(startPort);
-            model.setHoveredNode(model.getNodeById(startPort.ownerId()));
-            model.updateLinkDraftPreview(new Vector2D(point.x, point.y));
-            umlPanel.repaint();
+            UMLNode startNode = model.getNodeById(startPort.ownerId());
+            if (startNode != null) {
+                draftModel.startLinkDraft(startPort, startNode.getPortPosition(startPort.portType()));
+                selectionModel.setHoveredNode(startNode);
+                draftModel.updateLinkDraftPreview(new Vector2D(point.x, point.y));
+                umlPanel.repaint();
+            }
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (model.hasLinkDraft()) {
+        if (draftModel.hasLinkDraft()) {
             Point point = e.getPoint();
             UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
-            model.setHoveredNode(hoveredNode);
-            model.updateLinkDraftPreview(new Vector2D(point.x, point.y));
+            selectionModel.setHoveredNode(hoveredNode);
+            draftModel.updateLinkDraftPreview(new Vector2D(point.x, point.y));
             umlPanel.repaint();
         }
     }
@@ -51,13 +60,13 @@ public class LinkTool implements CanvasTool {
             return;
         }
 
-        if (model.hasLinkDraft()) {
+        if (draftModel.hasLinkDraft()) {
             Point point = e.getPoint();
-            UMLPort startPort = model.getLinkStartPort();
+            UMLPort startPort = draftModel.getLinkStartPort();
             UMLPort endPort = model.findTopPortAt(point.x, point.y);
             model.createLink(model.getUserMode(), startPort, endPort);
-            model.clearLinkDraft();
-            model.clearHover();
+            draftModel.clearLinkDraft();
+            selectionModel.clearHover();
             umlPanel.repaint();
         }
     }
@@ -65,14 +74,14 @@ public class LinkTool implements CanvasTool {
     @Override
     public void mouseMoved(MouseEvent e) {
         if (model.isTemporaryCreateModeActive()) {
-            model.clearHover();
+            selectionModel.clearHover();
             umlPanel.repaint();
             return;
         }
 
         Point point = e.getPoint();
         UMLNode hoveredNode = model.findTopNodeAt(point.x, point.y);
-        model.setHoveredNode(hoveredNode);
+        selectionModel.setHoveredNode(hoveredNode);
         umlPanel.repaint();
     }
 }

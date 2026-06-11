@@ -109,4 +109,65 @@ public abstract class UMLNode {
     public abstract void accept(UMLNodeVisitor visitor);
 
     public abstract void move(int deltaX, int deltaY);
+
+    public void resizeByPort(
+            PortType draggedPort,
+            Vector2D oppositePortPoint,
+            Vector2D dragPoint,
+            Vector2D initialPosition,
+            Vector2D initialSize,
+            int minSize
+    ) {
+        if (draggedPort == null || oppositePortPoint == null || dragPoint == null || initialPosition == null || initialSize == null) {
+            return;
+        }
+
+        int initialLeft = initialPosition.x;
+        int initialTop = initialPosition.y;
+        int initialRight = initialPosition.x + initialSize.x;
+        int initialBottom = initialPosition.y + initialSize.y;
+
+        int left = initialLeft;
+        int right = initialRight;
+        int top = initialTop;
+        int bottom = initialBottom;
+
+        boolean horizontalResize = draggedPort == PortType.LEFT || draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_LEFT
+                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
+        boolean verticalResize = draggedPort == PortType.TOP || draggedPort == PortType.BOTTOM || draggedPort == PortType.TOP_LEFT
+                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
+
+        if (horizontalResize) {
+            left = Math.min(dragPoint.x, oppositePortPoint.x);
+            right = Math.max(dragPoint.x, oppositePortPoint.x);
+        }
+        if (verticalResize) {
+            top = Math.min(dragPoint.y, oppositePortPoint.y);
+            bottom = Math.max(dragPoint.y, oppositePortPoint.y);
+        }
+
+        int minLength = Math.max(40, minSize);
+
+        if (right - left < minLength) {
+            if (draggedPort == PortType.LEFT || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.BOTTOM_LEFT) {
+                left = right - minLength;
+            } else if (draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_RIGHT) {
+                right = left + minLength;
+            } else {
+                right = left + minLength;
+            }
+        }
+        if (bottom - top < minLength) {
+            if (draggedPort == PortType.TOP || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.TOP_RIGHT) {
+                top = bottom - minLength;
+            } else if (draggedPort == PortType.BOTTOM || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT) {
+                bottom = top + minLength;
+            } else {
+                bottom = top + minLength;
+            }
+        }
+
+        setPosition(new Vector2D(left, top));
+        setSize(new Vector2D(right - left, bottom - top));
+    }
 }

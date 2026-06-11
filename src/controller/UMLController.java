@@ -1,5 +1,6 @@
 package controller;
 
+import model.SelectionModel;
 import model.UMLModel;
 import model.enums.UserMode;
 import view.UMLPanel;
@@ -19,6 +20,7 @@ public class UMLController extends MouseAdapter {
         this.model = model;
         this.umlPanel = umlPanel;
 
+        SelectionModel selectionModel = model.getSelectionModel();
         CanvasTool selectTool = new SelectTool(model, umlPanel);
         CanvasTool linkTool = new LinkTool(model, umlPanel);
         noOpTool = new CanvasTool() {
@@ -26,7 +28,7 @@ public class UMLController extends MouseAdapter {
             @Override public void mouseDragged(MouseEvent e) {}
             @Override public void mouseReleased(MouseEvent e) {}
             @Override public void mouseMoved(MouseEvent e) {
-                model.clearHover();
+                selectionModel.clearHover();
                 umlPanel.repaint();
             }
         };

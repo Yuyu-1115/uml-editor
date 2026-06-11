@@ -28,6 +28,14 @@ public class UMLModel {
     private final SelectionModel selectionModel = new SelectionModel();
     private final DraftModel draftModel = new DraftModel();
 
+    public SelectionModel getSelectionModel() {
+        return selectionModel;
+    }
+
+    public DraftModel getDraftModel() {
+        return draftModel;
+    }
+
     public void addNode(UMLNode shape) {
         if (shape != null) {
             objectRegistry.put(shape.getId(), shape);
@@ -41,10 +49,10 @@ public class UMLModel {
 
     public void setUserMode(UserMode userMode) {
         this.userMode = userMode;
-        clearHover();
-        clearLinkDraft();
-        clearTemporaryCreatePreview();
-        clearSelectionAreaDraft();
+        selectionModel.clearHover();
+        draftModel.clearLinkDraft();
+        draftModel.clearTemporaryCreatePreview();
+        draftModel.clearSelectionAreaDraft();
     }
 
     public boolean startTemporaryCreateMode(UserMode mode) {
@@ -54,7 +62,7 @@ public class UMLModel {
         previousUserModeForTemporaryCreate = userMode;
         temporaryCreateMode = mode;
         userMode = mode;
-        clearTemporaryCreatePreview();
+        draftModel.clearTemporaryCreatePreview();
         return true;
     }
 
@@ -66,6 +74,10 @@ public class UMLModel {
         return temporaryCreateMode;
     }
 
+    public UserMode getPreviousUserModeForTemporaryCreate() {
+        return previousUserModeForTemporaryCreate;
+    }
+
     public UserMode finishTemporaryCreateMode() {
         if (!isTemporaryCreateModeActive()) {
             return userMode;
@@ -74,7 +86,7 @@ public class UMLModel {
         temporaryCreateMode = null;
         previousUserModeForTemporaryCreate = null;
         userMode = restoredMode;
-        clearTemporaryCreatePreview();
+        draftModel.clearTemporaryCreatePreview();
         return restoredMode;
     }
 
@@ -150,66 +162,8 @@ public class UMLModel {
         return null;
     }
 
-    public void setSelectedNode(UMLNode node) {
-        selectionModel.setSelectedNode(node);
-    }
-
-    public void clearSelection() {
-        selectionModel.clearSelection();
-    }
-
-    public void setSelectedNodes(List<UMLNode> nodes) {
-        selectionModel.setSelectedNodes(nodes);
-    }
-
-    public List<UMLNode> getSelectedNodes() {
-        return selectionModel.getSelectedNodes(objectRegistry);
-    }
-
-    public boolean isSelected(UMLNode node) {
-        return selectionModel.isSelected(node);
-    }
-
-
-
-    public void setHoveredNode(UMLNode node) {
-        selectionModel.setHoveredNode(node);
-    }
-
-    public void clearHover() {
-        selectionModel.clearHover();
-    }
-
-    public boolean isHovered(UMLNode node) {
-        return selectionModel.isHovered(node);
-    }
-
     public UMLNode getNodeById(UUID id) {
         return objectRegistry.get(id);
-    }
-
-    public void startLinkDraft(UMLPort startPort) {
-        draftModel.startLinkDraft(startPort, getPortPosition(startPort));
-    }
-
-    public UMLPort getLinkStartPort() {
-        return draftModel.getLinkStartPort();
-    }
-
-    public void updateLinkDraftPreview(Vector2D point) {
-        draftModel.updateLinkDraftPreview(point);
-    }
-
-    public Vector2D getLinkPreviewPoint() {
-        return draftModel.getLinkPreviewPoint();
-    }
-
-    public void clearLinkDraft() {
-        draftModel.clearLinkDraft();
-    }
-
-    public boolean hasLinkDraft() {
-        return draftModel.hasLinkDraft();
     }
 
     public void createLink(UserMode mode, UMLPort start, UMLPort end) {
@@ -219,99 +173,10 @@ public class UMLModel {
         }
     }
 
-    public Vector2D getPortPosition(UMLPort UMLPort) {
-        if (UMLPort == null) {
-            return null;
-        }
-        UMLNode node = getNodeById(UMLPort.ownerId());
-        if (node == null) {
-            return null;
-        }
-        return node.getPortPosition(UMLPort.portType());
-    }
 
-
-
-    public void resizeNodeByPort(
-            UMLNode node,
-            PortType draggedPort,
-            Vector2D oppositePortPoint,
-            Vector2D dragPoint,
-            Vector2D initialPosition,
-            Vector2D initialSize,
-            int minSize
-    ) {
-        if (node == null || draggedPort == null || oppositePortPoint == null || dragPoint == null || initialPosition == null || initialSize == null) {
-            return;
-        }
-
-        int initialLeft = initialPosition.x;
-        int initialTop = initialPosition.y;
-        int initialRight = initialPosition.x + initialSize.x;
-        int initialBottom = initialPosition.y + initialSize.y;
-
-        int left = initialLeft;
-        int right = initialRight;
-        int top = initialTop;
-        int bottom = initialBottom;
-
-        boolean horizontalResize = draggedPort == PortType.LEFT || draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_LEFT
-                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
-        boolean verticalResize = draggedPort == PortType.TOP || draggedPort == PortType.BOTTOM || draggedPort == PortType.TOP_LEFT
-                || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT;
-
-        if (horizontalResize) {
-            left = Math.min(dragPoint.x, oppositePortPoint.x);
-            right = Math.max(dragPoint.x, oppositePortPoint.x);
-        }
-        if (verticalResize) {
-            top = Math.min(dragPoint.y, oppositePortPoint.y);
-            bottom = Math.max(dragPoint.y, oppositePortPoint.y);
-        }
-
-        int minLength = Math.max(40, minSize);
-
-        if (right - left < minLength) {
-            if (draggedPort == PortType.LEFT || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.BOTTOM_LEFT) {
-                left = right - minLength;
-            } else if (draggedPort == PortType.RIGHT || draggedPort == PortType.TOP_RIGHT || draggedPort == PortType.BOTTOM_RIGHT) {
-                right = left + minLength;
-            } else {
-                right = left + minLength;
-            }
-        }
-        if (bottom - top < minLength) {
-            if (draggedPort == PortType.TOP || draggedPort == PortType.TOP_LEFT || draggedPort == PortType.TOP_RIGHT) {
-                top = bottom - minLength;
-            } else if (draggedPort == PortType.BOTTOM || draggedPort == PortType.BOTTOM_LEFT || draggedPort == PortType.BOTTOM_RIGHT) {
-                bottom = top + minLength;
-            } else {
-                bottom = top + minLength;
-            }
-        }
-
-        node.setPosition(new Vector2D(left, top));
-        node.setSize(new Vector2D(right - left, bottom - top));
-    }
-
-    public PortType getOppositePortType(PortType portType) {
-        if (portType == null) {
-            return null;
-        }
-        return switch (portType) {
-            case TOP_LEFT -> PortType.BOTTOM_RIGHT;
-            case TOP -> PortType.BOTTOM;
-            case TOP_RIGHT -> PortType.BOTTOM_LEFT;
-            case RIGHT -> PortType.LEFT;
-            case BOTTOM_RIGHT -> PortType.TOP_LEFT;
-            case BOTTOM -> PortType.TOP;
-            case BOTTOM_LEFT -> PortType.TOP_RIGHT;
-            case LEFT -> PortType.RIGHT;
-        };
-    }
 
     public boolean groupSelectedNodes() {
-        List<UMLNode> selectedNodes = getSelectedNodes();
+        List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         List<UMLNode> topLevelSelectedNodes = new ArrayList<>();
         for (UMLNode selectedNode : selectedNodes) {
             if (selectedNode != null && selectedNode.getParent() == null) {
@@ -328,7 +193,7 @@ public class UMLModel {
             group.addChild(node);
         }
         bringToFront(group);
-        setSelectedNode(group);
+        selectionModel.setSelectedNode(group);
         return true;
     }
 
@@ -348,7 +213,7 @@ public class UMLModel {
     }
 
     public boolean ungroupSelectedNode() {
-        List<UMLNode> selectedNodes = getSelectedNodes();
+        List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         if (selectedNodes.size() != 1) {
             return false;
         }
@@ -363,47 +228,9 @@ public class UMLModel {
             bringToFront(child);
         }
         objectRegistry.remove(group.getId());
-        setSelectedNodes(children);
+        selectionModel.setSelectedNodes(children);
         return true;
     }
 
-    public void setTemporaryCreatePreview(Vector2D position, Vector2D size) {
-        draftModel.setTemporaryCreatePreview(position, size);
-    }
 
-    public void clearTemporaryCreatePreview() {
-        draftModel.clearTemporaryCreatePreview();
-    }
-
-    public boolean hasTemporaryCreatePreview() {
-        return draftModel.hasTemporaryCreatePreview();
-    }
-
-    public Vector2D getTemporaryCreatePreviewPosition() {
-        return draftModel.getTemporaryCreatePreviewPosition();
-    }
-
-    public Vector2D getTemporaryCreatePreviewSize() {
-        return draftModel.getTemporaryCreatePreviewSize();
-    }
-
-    public void setSelectionAreaDraft(Vector2D start, Vector2D end) {
-        draftModel.setSelectionAreaDraft(start, end);
-    }
-
-    public void clearSelectionAreaDraft() {
-        draftModel.clearSelectionAreaDraft();
-    }
-
-    public boolean hasSelectionAreaDraft() {
-        return draftModel.hasSelectionAreaDraft();
-    }
-
-    public Vector2D getSelectionAreaStart() {
-        return draftModel.getSelectionAreaStart();
-    }
-
-    public Vector2D getSelectionAreaEnd() {
-        return draftModel.getSelectionAreaEnd();
-    }
 }

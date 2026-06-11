@@ -1,5 +1,6 @@
 package view;
 
+import model.SelectionModel;
 import model.UMLModel;
 import model.node.UMLNodeVisitor;
 import model.Vector2D;
@@ -20,11 +21,11 @@ import java.util.List;
 
 public class UMLNodeRenderer implements UMLNodeVisitor {
     private final Graphics2D g2d;
-    private final UMLModel model;
+    private final SelectionModel selectionModel;
 
     public UMLNodeRenderer(Graphics2D g2d, UMLModel model) {
         this.g2d = g2d;
-        this.model = model;
+        this.selectionModel = model.getSelectionModel();
     }
 
     @Override
@@ -35,7 +36,7 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         g2d.drawRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
 
         drawName(rect);
-        if (model.isSelected(rect) || model.isHovered(rect)) {
+        if (selectionModel.isSelected(rect) || selectionModel.isHovered(rect)) {
             drawPorts(rect);
         }
     }
@@ -48,7 +49,7 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         g2d.drawOval(oval.getPosition().x, oval.getPosition().y, oval.getSize().x, oval.getSize().y);
 
         drawName(oval);
-        if (model.isSelected(oval) || model.isHovered(oval)) {
+        if (selectionModel.isSelected(oval) || selectionModel.isHovered(oval)) {
             drawPorts(oval);
         }
     }
@@ -60,7 +61,7 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
         for (UMLNode node : sortedNodes) {
             node.accept(this);
         }
-        if (model.isSelected(group) || model.isHovered(group)) {
+        if (selectionModel.isSelected(group) || selectionModel.isHovered(group)) {
             drawGroupBoundary(group);
         }
     }

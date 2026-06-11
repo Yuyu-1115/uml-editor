@@ -1,9 +1,11 @@
 package view;
 
+import model.DraftModel;
 import model.UMLModel;
 import model.UMLPort;
 import model.Vector2D;
 import model.enums.UserMode;
+import model.node.UMLNode;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -13,27 +15,29 @@ import java.awt.Stroke;
 public class UMLDraftRenderer {
     private final Graphics2D g2d;
     private final UMLModel model;
+    private final DraftModel draftModel;
 
     public UMLDraftRenderer(Graphics2D g2d, UMLModel model) {
         this.g2d = g2d;
         this.model = model;
+        this.draftModel = model.getDraftModel();
     }
 
     public void drawDrafts() {
-        if (model.hasTemporaryCreatePreview()) {
+        if (draftModel.hasTemporaryCreatePreview()) {
             drawTemporaryCreatePreview();
         }
-        if (model.hasSelectionAreaDraft()) {
+        if (draftModel.hasSelectionAreaDraft()) {
             drawSelectionAreaDraft();
         }
-        if (model.hasLinkDraft()) {
+        if (draftModel.hasLinkDraft()) {
             drawLinkDraft();
         }
     }
 
     private void drawTemporaryCreatePreview() {
-        Vector2D position = model.getTemporaryCreatePreviewPosition();
-        Vector2D size = model.getTemporaryCreatePreviewSize();
+        Vector2D position = draftModel.getTemporaryCreatePreviewPosition();
+        Vector2D size = draftModel.getTemporaryCreatePreviewSize();
         if (position == null || size == null) {
             return;
         }
@@ -49,8 +53,8 @@ public class UMLDraftRenderer {
     }
 
     private void drawSelectionAreaDraft() {
-        Vector2D start = model.getSelectionAreaStart();
-        Vector2D end = model.getSelectionAreaEnd();
+        Vector2D start = draftModel.getSelectionAreaStart();
+        Vector2D end = draftModel.getSelectionAreaEnd();
         if (start == null || end == null) {
             return;
         }
@@ -66,9 +70,15 @@ public class UMLDraftRenderer {
     }
 
     private void drawLinkDraft() {
-        UMLPort startPort = model.getLinkStartPort();
-        Vector2D startPosition = model.getPortPosition(startPort);
-        Vector2D endPosition = model.getLinkPreviewPoint();
+        UMLPort startPort = draftModel.getLinkStartPort();
+        Vector2D startPosition = null;
+        if (startPort != null) {
+            UMLNode startNode = model.getNodeById(startPort.ownerId());
+            if (startNode != null) {
+                startPosition = startNode.getPortPosition(startPort.portType());
+            }
+        }
+        Vector2D endPosition = draftModel.getLinkPreviewPoint();
         if (startPosition != null && endPosition != null) {
             g2d.setColor(Color.GRAY);
             g2d.drawLine(startPosition.x, startPosition.y, endPosition.x, endPosition.y);

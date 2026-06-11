@@ -3,63 +3,53 @@ package model;
 import model.node.UMLNode;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class SelectionModel {
-    private final Set<UUID> selectedNodeIds = new LinkedHashSet<>();
-    private UUID hoveredNodeId;
+    private final Set<UMLNode> selectedNodes = new LinkedHashSet<>();
+    private UMLNode hoveredNode;
 
     public void setSelectedNode(UMLNode node) {
-        selectedNodeIds.clear();
+        selectedNodes.clear();
         if (node != null) {
-            selectedNodeIds.add(node.getId());
+            selectedNodes.add(node);
         }
     }
 
     public void clearSelection() {
-        selectedNodeIds.clear();
+        selectedNodes.clear();
     }
 
     public void setSelectedNodes(List<UMLNode> nodes) {
-        selectedNodeIds.clear();
-        if (nodes == null) {
-            return;
-        }
-        for (UMLNode node : nodes) {
-            if (node != null) {
-                selectedNodeIds.add(node.getId());
+        selectedNodes.clear();
+        if (nodes != null) {
+            for (UMLNode node : nodes) {
+                if (node != null) {
+                    selectedNodes.add(node);
+                }
             }
         }
     }
 
-    public List<UMLNode> getSelectedNodes(HashMap<UUID, UMLNode> objectRegistry) {
-        List<UMLNode> selectedNodes = new ArrayList<>();
-        for (UUID selectedNodeId : selectedNodeIds) {
-            UMLNode selectedNode = objectRegistry.get(selectedNodeId);
-            if (selectedNode != null) {
-                selectedNodes.add(selectedNode);
-            }
-        }
-        return selectedNodes;
+    public List<UMLNode> getSelectedNodes() {
+        return new ArrayList<>(selectedNodes);
     }
 
     public boolean isSelected(UMLNode node) {
-        return node != null && selectedNodeIds.contains(node.getId());
+        return node != null && selectedNodes.contains(node);
     }
 
     public void setHoveredNode(UMLNode node) {
-        hoveredNodeId = node == null ? null : node.getId();
+        this.hoveredNode = node;
     }
 
     public void clearHover() {
-        hoveredNodeId = null;
+        this.hoveredNode = null;
     }
 
     public boolean isHovered(UMLNode node) {
-        return node != null && node.getId().equals(hoveredNodeId);
+        return node != null && node.equals(hoveredNode);
     }
 }

@@ -2,6 +2,7 @@ package view;
 
 import controller.ToolBarController;
 import controller.UMLController;
+import model.SelectionModel;
 import model.UMLModel;
 import model.enums.UserMode;
 import model.node.UMLGroup;
@@ -28,11 +29,13 @@ import java.util.Map;
 public class UMLUiBuilder {
     private static final Map<String, Color> COLOR_NAME_MAP = createColorNameMap();
     private final UMLModel umlModel;
+    private final SelectionModel selectionModel;
     private final ToolBarController toolBarController;
     private UMLPanel canvasPanel;
 
     public UMLUiBuilder(UMLModel umlModel) {
         this.umlModel = umlModel;
+        this.selectionModel = umlModel.getSelectionModel();
         this.toolBarController = new ToolBarController(umlModel);
     }
 
@@ -92,7 +95,7 @@ public class UMLUiBuilder {
     }
 
     private void showLabelStyleDialog() {
-        List<UMLNode> selectedNodes = umlModel.getSelectedNodes();
+        List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         if (selectedNodes.size() != 1) {
             return;
         }
