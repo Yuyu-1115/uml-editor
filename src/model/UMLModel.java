@@ -299,7 +299,7 @@ public class UMLModel {
         if (node == null || (deltaX == 0 && deltaY == 0)) {
             return;
         }
-        moveNodeRecursive(node, deltaX, deltaY);
+        node.move(deltaX, deltaY);
     }
 
     public void moveSelectedNodes(int deltaX, int deltaY) {
@@ -327,14 +327,7 @@ public class UMLModel {
         }
 
         for (UMLNode node : selectedTopLevelNodes) {
-            moveNodeRecursive(node, deltaX, deltaY);
-        }
-    }
-
-    private void moveNodeRecursive(UMLNode node, int deltaX, int deltaY) {
-        node.setPosition(new Vector2D(node.getPosition().x + deltaX, node.getPosition().y + deltaY));
-        for (UMLNode child : node.getChildren()) {
-            moveNodeRecursive(child, deltaX, deltaY);
+            node.move(deltaX, deltaY);
         }
     }
 

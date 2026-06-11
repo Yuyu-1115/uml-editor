@@ -40,4 +40,9 @@ public class UMLOval extends UMLNode {
     public void accept(UMLNodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public void move(int deltaX, int deltaY) {
+        this.position = new Vector2D(this.position.x + deltaX, this.position.y + deltaY);
+    }
 }

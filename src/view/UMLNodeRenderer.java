@@ -55,10 +55,10 @@ public class UMLNodeRenderer implements UMLNodeVisitor {
 
     @Override
     public void visit(UMLGroup group) {
-        List<UMLNode> sortedChildren = new ArrayList<>(group.getChildren());
-        sortedChildren.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
-        for (UMLNode child : sortedChildren) {
-            child.accept(this);
+        List<UMLNode> sortedNodes = new ArrayList<>(group.getChildren());
+        sortedNodes.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
+        for (UMLNode node : sortedNodes) {
+            node.accept(this);
         }
         if (model.isSelected(group) || model.isHovered(group)) {
             drawGroupBoundary(group);
