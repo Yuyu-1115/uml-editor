@@ -1,12 +1,15 @@
 package model;
 
-import model.enums.LinkType;
 import model.enums.PortType;
 import model.enums.UserMode;
-import model.shape.UMLGroup;
-import model.shape.UMLNode;
-import model.shape.UMLOval;
-import model.shape.UMLRect;
+import model.link.AssociationLink;
+import model.link.CompositionLink;
+import model.link.GeneralizationLink;
+import model.link.UMLLink;
+import model.node.UMLGroup;
+import model.node.UMLNode;
+import model.node.UMLOval;
+import model.node.UMLRect;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -272,16 +275,15 @@ public class UMLModel {
         if (start == null || end == null || start.ownerId().equals(end.ownerId())) {
             return;
         }
-        LinkType linkType = switch (mode) {
-            case ASSOCIATION -> LinkType.ASSOCIATION;
-            case GENERALIZATION -> LinkType.GENERALIZATION;
-            case COMPOSITION -> LinkType.COMPOSITION;
+        UMLLink link = switch (mode) {
+            case ASSOCIATION -> new AssociationLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
+            case GENERALIZATION -> new GeneralizationLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
+            case COMPOSITION -> new CompositionLink(start.ownerId(), start.portType(), end.ownerId(), end.portType());
             default -> null;
         };
-        if (linkType == null) {
-            return;
+        if (link != null) {
+            links.add(link);
         }
-        links.add(new UMLLink(linkType, start.ownerId(), start.portType(), end.ownerId(), end.portType()));
     }
 
     public Vector2D getPortPosition(UMLPort UMLPort) {
@@ -299,7 +301,7 @@ public class UMLModel {
         if (node == null || (deltaX == 0 && deltaY == 0)) {
             return;
         }
-        moveNodeRecursive(node, deltaX, deltaY);
+        node.move(deltaX, deltaY);
     }
 
     public void moveSelectedNodes(int deltaX, int deltaY) {
@@ -327,14 +329,7 @@ public class UMLModel {
         }
 
         for (UMLNode node : selectedTopLevelNodes) {
-            moveNodeRecursive(node, deltaX, deltaY);
-        }
-    }
-
-    private void moveNodeRecursive(UMLNode node, int deltaX, int deltaY) {
-        node.setPosition(new Vector2D(node.getPosition().x + deltaX, node.getPosition().y + deltaY));
-        for (UMLNode child : node.getChildren()) {
-            moveNodeRecursive(child, deltaX, deltaY);
+            node.move(deltaX, deltaY);
         }
     }
 

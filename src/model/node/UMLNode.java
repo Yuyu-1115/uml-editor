@@ -1,11 +1,9 @@
-package model.shape;
+package model.node;
 
 import model.Vector2D;
 import model.enums.PortType;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,8 +11,7 @@ public abstract class UMLNode {
     private UUID id;
     private String name;
     private int depth;
-    private UMLNode parent;
-    private final List<UMLNode> children = new ArrayList<>();
+    private UMLGroup parent;
     private Color labelColor = Color.WHITE;
     protected Vector2D position;
     protected Vector2D size;
@@ -77,28 +74,12 @@ public abstract class UMLNode {
         this.depth = depth;
     }
 
-    public UMLNode getParent() {
+    public UMLGroup getParent() {
         return parent;
     }
 
-    public void setParent(UMLNode parent) {
+    public void setParent(UMLGroup parent) {
         this.parent = parent;
-    }
-
-    public List<UMLNode> getChildren() {
-        return Collections.unmodifiableList(children);
-    }
-
-    public void addChild(UMLNode child) {
-        children.add(child);
-        child.setParent(this);
-    }
-
-    public void removeChild(UMLNode child) {
-        children.remove(child);
-        if (child.getParent() == this) {
-            child.setParent(null);
-        }
     }
 
     public abstract boolean containsPoint(int x, int y);
@@ -124,4 +105,8 @@ public abstract class UMLNode {
             case LEFT -> new Vector2D(left, centerY);
         };
     }
+
+    public abstract void accept(UMLNodeVisitor visitor);
+
+    public abstract void move(int deltaX, int deltaY);
 }

@@ -4,8 +4,8 @@ import controller.ToolBarController;
 import controller.UMLController;
 import model.UMLModel;
 import model.enums.UserMode;
-import model.shape.UMLGroup;
-import model.shape.UMLNode;
+import model.node.UMLGroup;
+import model.node.UMLNode;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
