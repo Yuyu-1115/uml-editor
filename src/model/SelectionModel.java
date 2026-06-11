@@ -2,7 +2,6 @@ package model;
 
 import model.node.UMLNode;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +33,7 @@ public class SelectionModel {
     }
 
     public List<UMLNode> getSelectedNodes() {
-        return new ArrayList<>(selectedNodes);
+        return List.copyOf(selectedNodes);
     }
 
     public boolean isSelected(UMLNode node) {

@@ -6,7 +6,6 @@ import model.UMLModel;
 import record.Vector2D;
 import record.UMLPort;
 import model.enums.PortType;
-import model.node.UMLGroup;
 import model.node.UMLNode;
 
 import java.awt.Point;
@@ -115,13 +114,8 @@ public class SelectTool implements CanvasTool {
         if (selectDragAction == SelectDragAction.MOVING && lastDragPoint != null) {
             int deltaX = point.x - lastDragPoint.x;
             int deltaY = point.y - lastDragPoint.y;
-            if (selectionModel.isSelected(activeNode) && selectionModel.getSelectedNodes().size() > 1) {
-                moveSelectedNodes(deltaX, deltaY);
-            } else {
-                activeNode.move(deltaX, deltaY);
-            }
+            model.moveSelectedNodes(deltaX, deltaY);
             lastDragPoint = point;
-            model.fireModelChanged();
             return;
         }
 
@@ -183,31 +177,6 @@ public class SelectTool implements CanvasTool {
         areaSelectStartPoint = null;
         areaSelectActivated = false;
         draftModel.clearSelectionAreaDraft();
-    }
-
-    private void moveSelectedNodes(int deltaX, int deltaY) {
-        java.util.List<UMLNode> selectedTopLevelNodes = new java.util.ArrayList<>();
-        for (UMLNode node : selectionModel.getSelectedNodes()) {
-            if (node == null) {
-                continue;
-            }
-            UMLGroup ancestor = node.getParent();
-            boolean ancestorSelected = false;
-            while (ancestor != null) {
-                if (selectionModel.isSelected(ancestor)) {
-                    ancestorSelected = true;
-                    break;
-                }
-                ancestor = ancestor.getParent();
-            }
-            if (!ancestorSelected) {
-                selectedTopLevelNodes.add(node);
-            }
-        }
-
-        for (UMLNode node : selectedTopLevelNodes) {
-            node.move(deltaX, deltaY);
-        }
     }
 
     private void selectNodesFullyInsideArea(int x1, int y1, int x2, int y2) {
