@@ -13,14 +13,17 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 
 public class UMLDraftRenderer {
-    private final Graphics2D g2d;
+    private Graphics2D g2d;
     private final UMLModel model;
     private final DraftModel draftModel;
 
-    public UMLDraftRenderer(Graphics2D g2d, UMLModel model) {
-        this.g2d = g2d;
+    public UMLDraftRenderer(UMLModel model) {
         this.model = model;
         this.draftModel = model.getDraftModel();
+    }
+
+    public void setGraphics(Graphics2D g2d) {
+        this.g2d = g2d;
     }
 
     public void drawDrafts() {

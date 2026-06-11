@@ -11,9 +11,15 @@ import java.awt.RenderingHints;
 
 public class UMLPanel extends JPanel {
     private final UMLModel umlModel;
+    private final UMLLinkRenderer linkRenderer;
+    private final UMLNodeRenderer nodeRenderer;
+    private final UMLDraftRenderer draftRenderer;
 
     public UMLPanel(UMLModel umlModel) {
         this.umlModel = umlModel;
+        this.linkRenderer = new UMLLinkRenderer(umlModel);
+        this.nodeRenderer = new UMLNodeRenderer(umlModel);
+        this.draftRenderer = new UMLDraftRenderer(umlModel);
     }
 
     @Override
@@ -23,19 +29,19 @@ public class UMLPanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // 1. Draw connections / links
-        UMLLinkRenderer linkRenderer = new UMLLinkRenderer(g2d, umlModel);
+        linkRenderer.setGraphics(g2d);
         for (UMLLink link : umlModel.getLinksForRender()) {
             linkRenderer.draw(link);
         }
 
         // 2. Draw shapes using Visitor pattern
-        UMLNodeRenderer nodeRenderer = new UMLNodeRenderer(g2d, umlModel);
+        nodeRenderer.setGraphics(g2d);
         for (UMLNode node : umlModel.getNodesForRender()) {
             node.accept(nodeRenderer);
         }
 
         // 3. Draw temporary drafts (selection boxes, creation previews, link drafts)
-        UMLDraftRenderer draftRenderer = new UMLDraftRenderer(g2d, umlModel);
+        draftRenderer.setGraphics(g2d);
         draftRenderer.drawDrafts();
     }
 }

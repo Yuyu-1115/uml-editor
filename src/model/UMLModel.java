@@ -74,10 +74,6 @@ public class UMLModel {
         return temporaryCreateMode;
     }
 
-    public UserMode getPreviousUserModeForTemporaryCreate() {
-        return previousUserModeForTemporaryCreate;
-    }
-
     public UserMode finishTemporaryCreateMode() {
         if (!isTemporaryCreateModeActive()) {
             return userMode;

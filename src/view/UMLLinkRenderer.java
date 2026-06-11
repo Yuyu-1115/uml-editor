@@ -14,7 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 
 public class UMLLinkRenderer implements UMLLinkVisitor {
-    private final Graphics2D g2d;
+    private Graphics2D g2d;
     private final UMLModel model;
 
     private static record ArrowCoordinates(
@@ -25,9 +25,12 @@ public class UMLLinkRenderer implements UMLLinkVisitor {
         int backX, int backY
     ) {}
 
-    public UMLLinkRenderer(Graphics2D g2d, UMLModel model) {
-        this.g2d = g2d;
+    public UMLLinkRenderer(UMLModel model) {
         this.model = model;
+    }
+
+    public void setGraphics(Graphics2D g2d) {
+        this.g2d = g2d;
     }
 
     public void draw(UMLLink link) {

@@ -20,12 +20,15 @@ import java.util.Comparator;
 import java.util.List;
 
 public class UMLNodeRenderer implements UMLNodeVisitor {
-    private final Graphics2D g2d;
+    private Graphics2D g2d;
     private final SelectionModel selectionModel;
 
-    public UMLNodeRenderer(Graphics2D g2d, UMLModel model) {
-        this.g2d = g2d;
+    public UMLNodeRenderer(UMLModel model) {
         this.selectionModel = model.getSelectionModel();
+    }
+
+    public void setGraphics(Graphics2D g2d) {
+        this.g2d = g2d;
     }
 
     @Override
