@@ -43,10 +43,6 @@ public class UMLModel {
         }
     }
 
-    public void removeModelListener(UMLModelListener listener) {
-        listeners.remove(listener);
-    }
-
     public void fireModelChanged() {
         for (UMLModelListener listener : listeners) {
             listener.onModelChanged();
@@ -194,7 +190,7 @@ public class UMLModel {
 
 
 
-    public boolean groupSelectedNodes() {
+    public void groupSelectedNodes() {
         List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         List<UMLNode> topLevelSelectedNodes = new ArrayList<>();
         for (UMLNode selectedNode : selectedNodes) {
@@ -203,7 +199,7 @@ public class UMLModel {
             }
         }
         if (topLevelSelectedNodes.size() < 2) {
-            return false;
+            return;
         }
 
         UMLGroup group = getUmlGroup(topLevelSelectedNodes);
@@ -214,7 +210,6 @@ public class UMLModel {
         bringToFront(group);
         selectionModel.setSelectedNode(group);
         fireModelChanged();
-        return true;
     }
 
     private static UMLGroup getUmlGroup(List<UMLNode> topLevelSelectedNodes) {
@@ -232,14 +227,14 @@ public class UMLModel {
         return new UMLGroup("", new Vector2D(minX, minY), new Vector2D(maxX - minX, maxY - minY));
     }
 
-    public boolean ungroupSelectedNode() {
+    public void ungroupSelectedNode() {
         List<UMLNode> selectedNodes = selectionModel.getSelectedNodes();
         if (selectedNodes.size() != 1) {
-            return false;
+            return;
         }
         UMLNode selectedNode = selectedNodes.getFirst();
         if (!(selectedNode instanceof UMLGroup group)) {
-            return false;
+            return;
         }
 
         List<UMLNode> children = new ArrayList<>(group.getChildren());
@@ -250,8 +245,31 @@ public class UMLModel {
         objectRegistry.remove(group.getId());
         selectionModel.setSelectedNodes(children);
         fireModelChanged();
-        return true;
     }
 
+    public void moveSelectedNodes(int deltaX, int deltaY) {
+        List<UMLNode> selectedTopLevelNodes = new ArrayList<>();
+        for (UMLNode node : selectionModel.getSelectedNodes()) {
+            if (node == null) {
+                continue;
+            }
+            UMLGroup ancestor = node.getParent();
+            boolean ancestorSelected = false;
+            while (ancestor != null) {
+                if (selectionModel.isSelected(ancestor)) {
+                    ancestorSelected = true;
+                    break;
+                }
+                ancestor = ancestor.getParent();
+            }
+            if (!ancestorSelected) {
+                selectedTopLevelNodes.add(node);
+            }
+        }
 
+        for (UMLNode node : selectedTopLevelNodes) {
+            node.move(deltaX, deltaY);
+        }
+        fireModelChanged();
+    }
 }
