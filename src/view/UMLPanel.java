@@ -40,8 +40,9 @@ public class UMLPanel extends JPanel {
             drawTemporaryCreatePreview(g2d);
         }
 
-        for (UMLNode node: umlModel.getNodesForRender()) {
-            drawNodeRecursive(g2d, node);
+        UMLNodeRenderer renderer = new UMLNodeRenderer(g2d, umlModel);
+        for (UMLNode node : umlModel.getNodesForRender()) {
+            node.accept(renderer);
         }
 
         if (umlModel.hasSelectionAreaDraft()) {
@@ -59,51 +60,7 @@ public class UMLPanel extends JPanel {
         }
     }
 
-    private void drawPorts(Graphics2D g2d, UMLNode node) {
-        g2d.setColor(Color.BLACK);
-        for (PortType portType : node.getSupportedPorts()) {
-            Vector2D port = node.getPortPosition(portType);
-            g2d.fillRect(port.x - PORT_SIZE / 2, port.y - PORT_SIZE / 2, PORT_SIZE, PORT_SIZE);
-        }
-    }
 
-    private void drawNodeRecursive(Graphics2D g2d, UMLNode node) {
-        if (node instanceof UMLGroup) {
-            List<UMLNode> children = new ArrayList<>(node.getChildren());
-            children.sort(Comparator.comparingInt(UMLNode::getDepth).reversed());
-            for (UMLNode child : children) {
-                drawNodeRecursive(g2d, child);
-            }
-            if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
-                drawGroupBoundary(g2d, node);
-            }
-            return;
-        }
-
-        if (node instanceof UMLOval) {
-            g2d.setColor(node.getLabelColor());
-            g2d.fillOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            g2d.setColor(Color.BLACK);
-            g2d.drawOval(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-        } else {
-            g2d.setColor(node.getLabelColor());
-            g2d.fillRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-            g2d.setColor(Color.BLACK);
-            g2d.drawRect(node.getPosition().x, node.getPosition().y, node.getSize().x, node.getSize().y);
-        }
-        drawNodeName(g2d, node);
-        if (umlModel.isSelected(node) || umlModel.isHovered(node)) {
-            drawPorts(g2d, node);
-        }
-    }
-
-    private void drawGroupBoundary(Graphics2D g2d, UMLNode groupNode) {
-        Stroke oldStroke = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(groupNode.getPosition().x, groupNode.getPosition().y, groupNode.getSize().x, groupNode.getSize().y);
-        g2d.setStroke(oldStroke);
-    }
 
     private void drawTemporaryCreatePreview(Graphics2D g2d) {
         Vector2D position = umlModel.getTemporaryCreatePreviewPosition();
@@ -139,19 +96,7 @@ public class UMLPanel extends JPanel {
         g2d.setStroke(oldStroke);
     }
 
-    private void drawNodeName(Graphics2D g2d, UMLNode node) {
-        String name = node.getName();
-        if (name == null || name.isBlank()) {
-            return;
-        }
-        FontMetrics metrics = g2d.getFontMetrics();
-        int textWidth = metrics.stringWidth(name);
-        int textHeight = metrics.getAscent();
-        int textX = node.getPosition().x + (node.getSize().x - textWidth) / 2;
-        int textY = node.getPosition().y + (node.getSize().y + textHeight) / 2 - 2;
-        g2d.setColor(Color.BLACK);
-        g2d.drawString(name, textX, textY);
-    }
+
 
     private void drawLink(Graphics2D g2d, UMLLink link) {
         UMLNode sourceNode = umlModel.getNodeById(link.sourceNodeId());

@@ -1,5 +1,6 @@
 package model.shape;
 
+import model.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
 
@@ -27,5 +28,10 @@ public class UMLRect extends UMLNode {
                 PortType.BOTTOM_LEFT,
                 PortType.LEFT
         );
+    }
+
+    @Override
+    public void accept(UMLNodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

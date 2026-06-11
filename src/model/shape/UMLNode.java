@@ -1,5 +1,6 @@
 package model.shape;
 
+import model.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
 
@@ -124,4 +125,6 @@ public abstract class UMLNode {
             case LEFT -> new Vector2D(left, centerY);
         };
     }
+
+    public abstract void accept(UMLNodeVisitor visitor);
 }

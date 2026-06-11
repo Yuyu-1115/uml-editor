@@ -1,5 +1,6 @@
 package model.shape;
 
+import model.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
 
@@ -18,5 +19,10 @@ public class UMLGroup extends UMLNode {
     @Override
     public List<PortType> getSupportedPorts() {
         return List.of();
+    }
+
+    @Override
+    public void accept(UMLNodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

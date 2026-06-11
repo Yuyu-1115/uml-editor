@@ -1,11 +1,12 @@
 package model.shape;
 
+import model.UMLNodeVisitor;
 import model.Vector2D;
 import model.enums.PortType;
 
 import java.util.List;
 
-public class UMLOval extends UMLNode{
+public class UMLOval extends UMLNode {
 
     public UMLOval(String name, Vector2D position, Vector2D size) {
         super(name, position, size);
@@ -33,5 +34,10 @@ public class UMLOval extends UMLNode{
                 PortType.BOTTOM,
                 PortType.LEFT
         );
+    }
+
+    @Override
+    public void accept(UMLNodeVisitor visitor) {
+        visitor.visit(this);
     }
 }
